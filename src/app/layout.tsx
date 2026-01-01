@@ -15,11 +15,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FamilyFy | Smart Family Finance",
-  description: "Secure, collaborative finance tracking for dual-income households. Manage income, expenses, and goals together.",
+  title: "FamilyFi | Smart Family Finance",
+  description: 'Smart personal finance tracking for your household',
+  manifest: '/manifest.json',
+  themeColor: '#2563eb',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FamilyFi',
+  },
 };
 
 import ThemeProvider from "@/components/shared/ThemeProvider";
+
+import PWARegistration from '@/components/shared/PWARegistration';
 
 export default function RootLayout({
   children,
@@ -29,11 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900/40 dark:selection:text-blue-200 transition-colors duration-300`}
       >
         <Providers>
           <AuthProvider>
             <ThemeProvider>
+              <PWARegistration />
               {children}
             </ThemeProvider>
           </AuthProvider>

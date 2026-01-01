@@ -14,17 +14,17 @@ export default function GoalCard({ goal }: { goal: Goal }) {
     const progress = Math.min((goal.saved_amount / goal.target_amount) * 100, 100);
 
     return (
-        <div className={`p-8 rounded-[2.5rem] border transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${isAchieved
+        <div className={`p-4 md:p-8 rounded-3xl md:rounded-[2.5rem] border transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${isAchieved
             ? 'bg-green-50/30 dark:bg-green-900/10 border-green-100/50 dark:border-green-900/20'
             : 'bg-white dark:bg-slate-900/40 border-slate-100 dark:border-slate-800/50 shadow-sm'}`}>
             <div className="flex justify-between items-start mb-6">
                 <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${isAchieved ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
-                            <TrendingUp className={`w-5 h-5 ${isAchieved ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <div className={`p-1.5 md:p-2 rounded-xl ${isAchieved ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                            <TrendingUp className={`w-4 h-4 md:w-5 md:h-5 ${isAchieved ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} />
                         </div>
-                        <h3 className="font-black text-slate-900 dark:text-slate-100 text-xl tracking-tight">{goal.name}</h3>
-                        {isAchieved && <CheckCircle2 className="w-5 h-5 text-green-500 animate-pulse" />}
+                        <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg md:text-xl tracking-tight">{goal.name}</h3>
+                        {isAchieved && <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-green-500 animate-pulse" />}
                     </div>
                     <div className="flex gap-3 mt-3">
                         <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100/20">
@@ -33,10 +33,10 @@ export default function GoalCard({ goal }: { goal: Goal }) {
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                    <p className="text-lg md:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                         {formatCurrency(goal.saved_amount)}
                     </p>
-                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                    <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
                         of {formatCurrency(goal.target_amount)}
                     </p>
                 </div>

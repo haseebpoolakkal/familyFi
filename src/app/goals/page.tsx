@@ -63,49 +63,49 @@ export default function GoalsPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div className="max-w-6xl mx-auto px-0 md:px-4">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-4 mb-8">
                     <div>
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Financial Goals</h2>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium italic">Plan and track your savings progress.</p>
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Financial Goals</h2>
+                        <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium italic">Plan and track your savings progress.</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl mr-2 shadow-inner">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 md:p-1.5 rounded-xl md:rounded-2xl shadow-inner w-full sm:w-auto justify-center sm:justify-start">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-2.5 rounded-xl transition-all duration-300 ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`flex-1 sm:flex-none p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all duration-300 flex justify-center ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 <LayoutGrid className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2.5 rounded-xl transition-all duration-300 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                className={`flex-1 sm:flex-none p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all duration-300 flex justify-center ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 <List className="w-5 h-5" />
                             </button>
                         </div>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
-                            className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 dark:shadow-none"
+                            className="bg-blue-600 text-white w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 dark:shadow-none text-sm md:text-base"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4 md:w-5 md:h-5" />
                             New Goal
                         </button>
                     </div>
                 </div>
 
-                <div className={`mb-8 p-8 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors duration-300 ${totalPercentage === 100
+                <div className={`mb-8 p-4 md:p-8 rounded-2xl md:rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 transition-colors duration-300 ${totalPercentage === 100
                     ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 text-green-800 dark:text-green-300'
                     : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-300'}`}>
-                    <div>
-                        <p className="text-xl font-black flex items-center gap-2 tracking-tight">
+                    <div className="flex-1">
+                        <p className="text-lg md:text-xl font-black flex items-center gap-2 tracking-tight">
                             Total Priority Allocation: {totalPercentage}%
                         </p>
                         {totalPercentage !== 100 && (
-                            <p className="text-sm font-medium opacity-80 italic">Your allocations should ideally sum to 100% for full distribution.</p>
+                            <p className="text-[10px] md:text-sm font-medium opacity-80 italic">Allocations should sum to 100%.</p>
                         )}
                     </div>
-                    <div className="h-4 flex-1 max-w-md bg-white/50 dark:bg-slate-900/40 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                    <div className="h-3 md:h-4 w-full md:max-w-md bg-white/50 dark:bg-slate-900/40 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                         <div
                             className={`h-full transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) ${totalPercentage === 100 ? 'bg-green-500' : 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`}
                             style={{ width: `${Math.min(totalPercentage, 100)}%` }}

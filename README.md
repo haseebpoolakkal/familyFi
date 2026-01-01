@@ -1,8 +1,8 @@
-# 🏠 FamilyFy
+# 🏠 FamilyFi
 
-**FamilyFy** is a modern, collaborative personal finance and budgeting application designed for dual-income households. It helps families track income, manage recurring and variable expenses, and reach savings goals together in real-time.
+**FamilyFi** is a modern, collaborative personal finance and budgeting application designed for dual-income households. It helps families track income, manage recurring and variable expenses, and reach savings goals together in real-time.
 
-![FamilyFy Logo](public/logo.png)
+![FamilyFi Logo](public/logo.png)
 
 ## ✨ Features
 

@@ -97,12 +97,12 @@ export default function IncomePage() {
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                <div className="mb-6 md:mb-8 p-4 md:p-8 flex flex-col md:flex-row justify-between items-start bg-white dark:bg-slate-900/50 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm md:items-center gap-6">
                     <div>
                         <h2 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Income Sources</h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium">Manage and track all household earnings.</p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
                         <MonthFilter />
                         <button
                             onClick={() => setIsAddOpen(!isAddOpen)}
@@ -166,7 +166,8 @@ export default function IncomePage() {
                 )}
 
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-300">
-                    <table className="w-full text-left">
+                    {/* Desktop Table */}
+                    <table className="w-full text-left hidden md:table">
                         <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
                             <tr>
                                 <th className="px-6 py-4">Description</th>
@@ -260,6 +261,71 @@ export default function IncomePage() {
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile Card Layout */}
+                    <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        {income.length > 0 ? (
+                            income.map((item) => (
+                                <div key={item.id} className="p-4 space-y-3">
+                                    {editingId === item.id ? (
+                                        <div className="space-y-3">
+                                            <input
+                                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-900 dark:text-slate-100"
+                                                value={editValues.description}
+                                                onChange={(e) => setEditValues({ ...editValues, description: e.target.value })}
+                                            />
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <select
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-900 dark:text-slate-100"
+                                                    value={editValues.type}
+                                                    onChange={(e) => setEditValues({ ...editValues, type: e.target.value as 'fixed' | 'freelance' })}
+                                                >
+                                                    <option value="fixed">Fixed</option>
+                                                    <option value="freelance">Freelance</option>
+                                                </select>
+                                                <input
+                                                    type="number"
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-right text-slate-900 dark:text-slate-100"
+                                                    value={editValues.amount}
+                                                    onChange={(e) => setEditValues({ ...editValues, amount: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="flex justify-end gap-2 pt-2">
+                                                <button onClick={() => handleUpdate(item.id)} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2"><Check className="w-4 h-4" /> Save</button>
+                                                <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold flex items-center gap-2"><X className="w-4 h-4" /> Cancel</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex justify-between items-start">
+                                                <div className="max-w-[70%]">
+                                                    <p className="font-black text-slate-800 dark:text-slate-100 leading-tight mb-1">{item.description}</p>
+                                                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wide ${item.type === 'fixed'
+                                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                                        }`}>
+                                                        {item.type}
+                                                    </span>
+                                                </div>
+                                                <p className="font-black text-slate-800 dark:text-slate-100 text-lg">
+                                                    {formatCurrency(item.amount)}
+                                                </p>
+                                            </div>
+                                            <div className="flex justify-between items-center text-slate-400 text-xs font-bold pt-1">
+                                                <span>{formatDate(new Date(item.date))}</span>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => startEdit(item)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-10 text-center text-slate-400 font-bold">No income records found.</div>
+                        )}
+                    </div>
                 </div>
             </div>
         </DashboardLayout>

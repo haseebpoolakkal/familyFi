@@ -56,9 +56,9 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-500">
             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-auto max-w-lg overflow-hidden animate-in fade-in zoom-in duration-500 border border-transparent dark:border-slate-800">
-                <div className="bg-blue-600 p-10 text-white relative overflow-hidden">
-                    <div className="relative z-10">
-                        <h2 className="text-4xl font-black mb-2 tracking-tight">Finish Setup</h2>
+                <div className="bg-blue-600 p-5 lg:p-8 text-white relative overflow-hidden">
+                    <div className="flex flex-col gap-1 relative z-10">
+                        <h2 className="text-2xl font-black tracking-tight">Finish Setup</h2>
                         <p className="text-blue-100 font-medium italic opacity-90">Let&apos;s get your household ready.</p>
                     </div>
                     <Layout className="absolute -right-12 -bottom-12 w-56 h-56 text-blue-500/20 rotate-12" />
@@ -142,7 +142,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-lg hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-200 dark:shadow-none flex items-center justify-center gap-3 group disabled:opacity-50"
+                        className="w-full bg-blue-600 text-white py-3 lg:py-5 rounded-3xl font-black text-lg hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-200 dark:shadow-none flex items-center justify-center gap-3 group disabled:opacity-50"
                     >
                         {loading ? 'Setting up...' : 'Get Started'}
                         <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />

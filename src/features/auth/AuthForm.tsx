@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClientComponentClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
 
 export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     const [email, setEmail] = useState('');
@@ -48,8 +49,16 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     };
 
     return (
-        <form onSubmit={handleAuth} className="space-y-4 w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-center text-slate-800">
+        <form onSubmit={handleAuth} className="space-y-4 w-full max-w-md bg-white dark:bg-slate-900/50 p-8 border border-slate-100 dark:border-slate-800 rounded-xl shadow-lg">
+            <div className="flex items-center justify-center">
+                <Image
+                    src="/logo.png"
+                    alt="Logo"
+                    width={100}
+                    height={100}
+                />
+            </div>
+            <h2 className="text-2xl font-bold text-center text-slate-800 dark:text-slate-100">
                 {mode === 'login' ? 'Welcome Back' : 'Create Account'}
             </h2>
             {error && (
@@ -58,22 +67,22 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
                 </div>
             )}
             <div>
-                <label className="block text-sm font-medium text-slate-700">Email</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
                 <input
                     type="email"
                     required
-                    className="text-slate-800 w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="text-slate-800 dark:text-slate-200 w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
             </div>
             <div>
-                <label className="block text-sm font-medium text-slate-700">Password</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
                 <div className="relative mt-1">
                     <input
                         type={showPassword ? "text" : "password"}
                         required
-                        className="text-slate-800 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                        className="text-slate-800 dark:text-slate-200 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
@@ -89,15 +98,15 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             </div>
             <button
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-800 transition disabled:opacity-50"
             >
                 {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Sign Up'}
             </button>
-            <div className="text-center text-sm text-slate-600">
+            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
                 {mode === 'login' ? (
-                    <p>Don&apos;t have an account? <a href="/signup" className="text-blue-600 hover:underline">Sign Up</a></p>
+                    <p>Don&apos;t have an account? <a href="/signup" className="text-blue-600 hover:underline dark:text-blue-400">Sign Up</a></p>
                 ) : (
-                    <p>Already have an account? <a href="/login" className="text-blue-600 hover:underline">Sign In</a></p>
+                    <p>Already have an account? <a href="/login" className="text-blue-600 hover:underline dark:text-blue-400">Sign In</a></p>
                 )}
             </div>
         </form>

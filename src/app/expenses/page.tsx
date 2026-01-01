@@ -84,67 +84,67 @@ export default function ExpensesPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-6xl mx-auto px-4">
+            <div className="max-w-6xl mx-auto px-0 md:px-4">
                 {/* Visual Header / Summary Card */}
-                <div className="mb-8 p-8 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative overflow-hidden transition-colors duration-300">
+                <div className="mb-6 md:mb-8 p-4 md:p-8 bg-white dark:bg-slate-900/50 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-8 relative overflow-hidden transition-colors duration-300">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 dark:bg-blue-900/10 rounded-full -mr-32 -mt-32 blur-3xl -z-10" />
 
-                    <div>
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight mb-2">My Expenses</h2>
-                        <div className="flex items-center gap-8">
+                    <div className="w-full md:w-auto">
+                        <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight mb-4 md:mb-2">My Expenses</h2>
+                        <div className="flex items-center justify-between md:justify-start gap-4 md:gap-8">
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Estimated Monthly Fixed</span>
-                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{formatCurrency(totalFixedEstimate)}</span>
+                                <span className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Fixed Bills</span>
+                                <span className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{formatCurrency(totalFixedEstimate)}</span>
                             </div>
                             <div className="w-px h-10 bg-slate-100 dark:bg-slate-800" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Spent This Month (Variable)</span>
-                                <span className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{formatCurrency(totalVariableThisMonth)}</span>
+                                <span className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Daily Total</span>
+                                <span className="text-xl md:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{formatCurrency(totalVariableThisMonth)}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-3 text-nowrap">
+                    <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto">
                         <MonthFilter />
-                        <div className="flex items-center gap-3">
+                        <div className="grid grid-cols-2 md:flex items-center gap-2 md:gap-3 w-full">
                             <button
                                 onClick={() => setIsAddFixedOpen(true)}
-                                className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:border-blue-100 dark:hover:border-blue-900/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition shadow-sm active:scale-95"
+                                className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold flex items-center justify-center gap-2 hover:border-blue-100 dark:hover:border-blue-900/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition shadow-sm active:scale-95 text-xs md:text-base"
                             >
-                                <Plus className="w-5 h-5" />
-                                New Bill
+                                <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                                <span>New Bill</span>
                             </button>
                             <button
                                 onClick={() => setIsAddVariableOpen(true)}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 dark:shadow-none"
+                                className="bg-blue-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 dark:shadow-none text-xs md:text-base"
                             >
-                                <Receipt className="w-5 h-5" />
-                                Log Spending
+                                <Receipt className="w-4 h-4 md:w-5 md:h-5" />
+                                <span>Log Spending</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Modern Tab Bar */}
-                <div className="flex justify-center mb-10">
-                    <div className="bg-slate-100/80 dark:bg-slate-900/80 p-1.5 rounded-2xl flex items-center gap-1 shadow-inner backdrop-blur-sm">
+                <div className="flex justify-center mb-6 md:mb-10">
+                    <div className="bg-slate-100/80 dark:bg-slate-900/80 p-1 md:p-1.5 rounded-xl md:rounded-2xl flex items-center gap-1 shadow-inner backdrop-blur-sm w-full md:w-auto">
                         <button
                             onClick={() => setActiveTab('fixed')}
-                            className={`px-10 py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-3 ${activeTab === 'fixed'
+                            className={`flex-1 md:flex-none px-4 md:px-10 py-2.5 md:py-3.5 rounded-lg md:rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 text-xs md:text-base ${activeTab === 'fixed'
                                 ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
                                 : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50'}`}
                         >
-                            <Calendar className={`w-5 h-5 ${activeTab === 'fixed' ? 'text-blue-500' : 'text-slate-400 dark:text-slate-600'}`} />
-                            Recurring Bills
+                            <Calendar className={`w-4 h-4 md:w-5 md:h-5 ${activeTab === 'fixed' ? 'text-blue-500' : 'text-slate-400 dark:text-slate-600'}`} />
+                            <span className="whitespace-nowrap">Bills</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('variable')}
-                            className={`px-10 py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-3 ${activeTab === 'variable'
+                            className={`flex-1 md:flex-none px-4 md:px-10 py-2.5 md:py-3.5 rounded-lg md:rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 text-xs md:text-base ${activeTab === 'variable'
                                 ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
                                 : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50'}`}
                         >
-                            <Receipt className={`w-5 h-5 ${activeTab === 'variable' ? 'text-blue-500' : 'text-slate-400 dark:text-slate-600'}`} />
-                            Daily Spending
+                            <Receipt className={`w-4 h-4 md:w-5 md:h-5 ${activeTab === 'variable' ? 'text-blue-500' : 'text-slate-400 dark:text-slate-600'}`} />
+                            <span className="whitespace-nowrap">Daily</span>
                         </button>
                     </div>
                 </div>

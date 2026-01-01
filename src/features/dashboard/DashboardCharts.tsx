@@ -45,10 +45,10 @@ export default function DashboardCharts({ income, expenses, goals }: DashboardCh
     const hasGoals = pieData.length > 0;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
-            <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
-                <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 mb-6 tracking-tight">Income vs Expenses</h3>
-                <div className="h-64 w-full flex items-center justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mt-6 md:mt-10">
+            <div className="bg-white dark:bg-slate-900/50 p-4 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-black text-slate-800 dark:text-slate-200 mb-4 md:mb-6 tracking-tight">Income vs Expenses</h3>
+                <div className="h-56 md:h-64 w-full flex items-center justify-center">
                     {hasData ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={barData}>
@@ -79,9 +79,9 @@ export default function DashboardCharts({ income, expenses, goals }: DashboardCh
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
-                <h3 className="text-lg font-black text-slate-800 dark:text-slate-200 mb-6 tracking-tight">Savings Distribution</h3>
-                <div className="h-64 w-full flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900/50 p-4 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
+                <h3 className="text-base md:text-lg font-black text-slate-800 dark:text-slate-200 mb-4 md:mb-6 tracking-tight">Savings Distribution</h3>
+                <div className="h-56 md:h-64 w-full flex items-center justify-center">
                     {hasGoals ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>

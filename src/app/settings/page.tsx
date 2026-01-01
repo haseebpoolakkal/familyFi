@@ -102,8 +102,8 @@ export default function SettingsPage() {
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                             <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Your Household ID</label>
-                            <div className="flex gap-3">
-                                <code className="flex-1 bg-white dark:bg-slate-800 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 font-mono text-sm border border-slate-200 dark:border-slate-700 shadow-inner">
+                            <div className="flex flex-col lg:flex-row gap-3">
+                                <code className="flex-1 bg-white truncate text-nowrap dark:bg-slate-800 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 font-mono text-sm border border-slate-200 dark:border-slate-700 shadow-inner">
                                     {profile?.household_id}
                                 </code>
                                 <button
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                     <section className="border-t border-slate-50 dark:border-slate-800 pt-8">
                         <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-6 tracking-tight">Expense Categories</h3>
                         <div className="space-y-4">
-                            <div className="flex gap-3 mb-6">
+                            <div className="flex flex-col lg:flex-row gap-3 mb-6">
                                 <input
                                     type="text"
                                     className="flex-1 px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-sm text-slate-900 dark:text-slate-100 font-bold focus:ring-2 focus:ring-blue-500 transition"
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                                 <button
                                     onClick={() => newCategoryName && addCategoryMutation.mutate(newCategoryName)}
                                     disabled={addCategoryMutation.isPending}
-                                    className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold transition flex items-center gap-2 hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-100 dark:shadow-none"
+                                    className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-100 dark:shadow-none"
                                 >
                                     <Plus className="w-5 h-5" />
                                     Add
