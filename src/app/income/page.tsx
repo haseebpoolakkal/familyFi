@@ -6,12 +6,18 @@ import { getIncome, addIncome, updateIncome, deleteIncome, Income } from '@/serv
 import { useUserStore } from '@/store/userStore';
 import { useState } from 'react';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, Edit2, Trash2, X, Check } from 'lucide-react';
+import { Edit2, Trash2, Plus, X, Check } from 'lucide-react';
+import { useDateFilterStore } from '@/store/dateFilterStore';
+import MonthFilter from '@/components/shared/MonthFilter';
 
 export default function IncomePage() {
     const { profile } = useUserStore();
     const queryClient = useQueryClient();
-    const [showAdd, setShowAdd] = useState(false);
+    const { getDateRange } = useDateFilterStore();
+    const { startDate, endDate } = getDateRange();
+
+    // State for form
+    const [isAddOpen, setIsAddOpen] = useState(false);
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState<'fixed' | 'freelance'>('fixed');
@@ -20,8 +26,8 @@ export default function IncomePage() {
     const [editValues, setEditValues] = useState({ amount: '', description: '', type: 'fixed' as 'fixed' | 'freelance' });
 
     const { data: income = [] } = useQuery({
-        queryKey: ['income', profile?.household_id],
-        queryFn: () => getIncome(profile!.household_id),
+        queryKey: ['income', profile?.household_id, startDate, endDate],
+        queryFn: () => getIncome(profile!.household_id, startDate, endDate),
         enabled: !!profile?.household_id,
     });
 
@@ -29,7 +35,7 @@ export default function IncomePage() {
         mutationFn: (newIncome: Partial<Income>) => addIncome(newIncome),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['income'] });
-            setShowAdd(false);
+            setIsAddOpen(false);
             setAmount('');
             setDescription('');
         },
@@ -91,51 +97,54 @@ export default function IncomePage() {
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                     <div>
-                        <h2 className="text-3xl font-bold text-slate-800">Income Management</h2>
-                        <p className="text-slate-500 font-medium">Track and manage your family&apos;s earnings.</p>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Income Sources</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium">Manage and track all household earnings.</p>
                     </div>
-                    <button
-                        onClick={() => setShowAdd(!showAdd)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition active:scale-95 ${showAdd ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100'}`}
-                    >
-                        {showAdd ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                        {showAdd ? 'Cancel' : 'Add Income'}
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <MonthFilter />
+                        <button
+                            onClick={() => setIsAddOpen(!isAddOpen)}
+                            className="bg-blue-600 text-nowrap text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-200 dark:shadow-none"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Add Income
+                        </button>
+                    </div>
                 </div>
 
-                {showAdd && (
-                    <form onSubmit={handleAdd} className="mb-8 p-6 bg-white rounded-2xl border-2 border-blue-50 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
-                        <h3 className="text-slate-800 text-lg font-bold mb-4">New Income Entry</h3>
+                {isAddOpen && (
+                    <form onSubmit={handleAdd} className="mb-8 p-6 bg-white dark:bg-slate-900 rounded-2xl border-2 border-blue-50 dark:border-blue-900/30 shadow-xl dark:shadow-none animate-in fade-in slide-in-from-top-4 duration-300">
+                        <h3 className="text-slate-800 dark:text-slate-100 text-lg font-black mb-4 tracking-tight">New Income Entry</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Description</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 font-medium transition"
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 dark:text-slate-100 font-bold transition"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="e.g. Monthly Salary"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Amount</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Amount</label>
                                 <input
                                     type="number"
                                     required
                                     step="0.01"
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 font-black transition"
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 dark:text-slate-100 font-black transition"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     placeholder="0.00"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Income Type</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Income Type</label>
                                 <select
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 font-bold transition"
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 dark:text-slate-100 font-bold transition"
                                     value={type}
                                     onChange={(e) => setType(e.target.value as 'fixed' | 'freelance')}
                                 >
@@ -148,7 +157,7 @@ export default function IncomePage() {
                             <button
                                 type="submit"
                                 disabled={addMutation.isPending}
-                                className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 disabled:opacity-50"
+                                className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-100 dark:shadow-none disabled:opacity-50"
                             >
                                 {addMutation.isPending ? 'Saving...' : 'Save Entry'}
                             </button>
@@ -156,9 +165,9 @@ export default function IncomePage() {
                     </form>
                 )}
 
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-300">
                     <table className="w-full text-left">
-                        <thead className="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                        <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
                             <tr>
                                 <th className="px-6 py-4">Description</th>
                                 <th className="px-6 py-4">Type</th>
@@ -167,22 +176,22 @@ export default function IncomePage() {
                                 <th className="px-6 py-4 w-24"></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {income.length > 0 ? (
                                 income.map((item) => (
-                                    <tr key={item.id} className="group hover:bg-slate-50/80 transition relative">
+                                    <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition relative">
                                         {editingId === item.id ? (
                                             <>
                                                 <td className="px-6 py-3">
                                                     <input
-                                                        className="w-full px-2 py-1 text-sm border rounded outline-none focus:ring-1 focus:ring-blue-500 font-medium text-slate-700"
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-slate-800 border dark:border-slate-700 rounded outline-none focus:ring-1 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-200"
                                                         value={editValues.description}
                                                         onChange={(e) => setEditValues({ ...editValues, description: e.target.value })}
                                                     />
                                                 </td>
                                                 <td className="px-6 py-3">
                                                     <select
-                                                        className="w-full px-2 py-1 text-sm border rounded outline-none focus:ring-1 focus:ring-blue-500 font-bold text-slate-700"
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-slate-800 border dark:border-slate-700 rounded outline-none focus:ring-1 focus:ring-blue-500 font-bold text-slate-700 dark:text-slate-200"
                                                         value={editValues.type}
                                                         onChange={(e) => setEditValues({ ...editValues, type: e.target.value as 'fixed' | 'freelance' })}
                                                     >
@@ -190,45 +199,47 @@ export default function IncomePage() {
                                                         <option value="freelance">Freelance</option>
                                                     </select>
                                                 </td>
-                                                <td className="px-6 py-3 text-slate-400 text-sm">Now</td>
+                                                <td className="px-6 py-3 text-slate-400 dark:text-slate-500 text-sm">Now</td>
                                                 <td className="px-6 py-3 text-right">
                                                     <input
                                                         type="number"
-                                                        className="w-24 px-2 py-1 text-sm border rounded text-right outline-none focus:ring-1 focus:ring-blue-500 font-black text-slate-800"
+                                                        className="w-24 px-2 py-1 text-sm bg-white dark:bg-slate-800 border dark:border-slate-700 rounded text-right outline-none focus:ring-1 focus:ring-blue-500 font-black text-slate-800 dark:text-slate-100"
                                                         value={editValues.amount}
                                                         onChange={(e) => setEditValues({ ...editValues, amount: e.target.value })}
                                                     />
                                                 </td>
                                                 <td className="px-6 py-3 text-right">
                                                     <div className="flex gap-1 justify-end">
-                                                        <button onClick={() => handleUpdate(item.id)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><Check className="w-4 h-4" /></button>
-                                                        <button onClick={() => setEditingId(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded transition"><X className="w-4 h-4" /></button>
+                                                        <button onClick={() => handleUpdate(item.id)} className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded transition"><Check className="w-4 h-4" /></button>
+                                                        <button onClick={() => setEditingId(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition"><X className="w-4 h-4" /></button>
                                                     </div>
                                                 </td>
                                             </>
                                         ) : (
                                             <>
-                                                <td className="px-6 py-4 font-bold text-slate-800">{item.description}</td>
+                                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">{item.description}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wide ${item.type === 'fixed' ? 'bg-indigo-50 text-indigo-600' : 'bg-green-50 text-green-600'
+                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wide ${item.type === 'fixed'
+                                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                                                         }`}>
                                                         {item.type}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-400 text-sm font-medium">{formatDate(new Date(item.date))}</td>
-                                                <td className="px-6 py-4 text-right font-black text-slate-800">{formatCurrency(item.amount)}</td>
+                                                <td className="px-6 py-4 text-slate-400 dark:text-slate-500 text-sm font-medium">{formatDate(new Date(item.date))}</td>
+                                                <td className="px-6 py-4 text-right font-black text-slate-800 dark:text-slate-100">{formatCurrency(item.amount)}</td>
                                                 <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <div className="flex items-center gap-1 justify-end">
                                                         <button
                                                             onClick={() => startEdit(item)}
-                                                            className="p-2 text-slate-400 hover:bg-white hover:text-blue-500 rounded-lg shadow-sm border border-transparent hover:border-slate-100 transition"
+                                                            className="p-2 text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition"
                                                             title="Edit"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(item.id)}
-                                                            className="p-2 text-slate-400 hover:bg-white hover:text-red-500 rounded-lg shadow-sm border border-transparent hover:border-slate-100 transition"
+                                                            className="p-2 text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-red-500 dark:hover:text-red-400 rounded-lg shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition"
                                                             title="Delete"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -241,7 +252,7 @@ export default function IncomePage() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center text-slate-400 bg-slate-50/30">
+                                    <td colSpan={5} className="px-6 py-16 text-center text-slate-400 dark:text-slate-500 bg-slate-50/30 dark:bg-slate-900/30">
                                         <p className="font-bold">No income records found.</p>
                                         <p className="text-xs">Start by adding your first income entry above.</p>
                                     </td>

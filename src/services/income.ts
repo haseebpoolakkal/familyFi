@@ -10,13 +10,21 @@ export interface Income {
     date: string;
 }
 
-export async function getIncome(householdId: string): Promise<Income[]> {
+export async function getIncome(householdId: string, startDate?: string, endDate?: string): Promise<Income[]> {
     const supabase = createClient();
-    const { data, error } = await supabase
+    let query = supabase
         .from('income')
         .select('*')
-        .eq('household_id', householdId)
-        .order('date', { ascending: false });
+        .eq('household_id', householdId);
+
+    if (startDate) {
+        query = query.gte('date', startDate);
+    }
+    if (endDate) {
+        query = query.lte('date', endDate);
+    }
+
+    const { data, error } = await query.order('date', { ascending: false });
 
     if (error) throw error;
     return data || [];

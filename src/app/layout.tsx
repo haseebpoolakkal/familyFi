@@ -15,9 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Family Finance | Budget & Goal Tracker",
-  description: "Secure, collaborative finance tracking for dual-income households.",
+  title: "FamilyFy | Smart Family Finance",
+  description: "Secure, collaborative finance tracking for dual-income households. Manage income, expenses, and goals together.",
 };
+
+import ThemeProvider from "@/components/shared/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -25,13 +27,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
           <AuthProvider>
-            {children}
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
           </AuthProvider>
         </Providers>
       </body>

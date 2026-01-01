@@ -43,9 +43,9 @@ export interface ExpenseWithPayments extends ExpenseTemplate {
 }
 
 /**
- * Get all expense templates for a household
+ * Get all expense templates for a household with status for a specific period
  */
-export async function getExpenseTemplates(householdId: string): Promise<ExpenseTemplate[]> {
+export async function getExpenseTemplates(householdId: string, startDate?: string, endDate?: string): Promise<ExpenseTemplate[]> {
     const supabase = createClient();
 
     // Fetch templates
@@ -60,12 +60,10 @@ export async function getExpenseTemplates(householdId: string): Promise<ExpenseT
         throw error;
     }
 
-    if (!templates || templates.length === 0) return [];
-
-    // Fetch this month's payments to determine status
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    // Fetch payments for the specified period to determine status
+    const startOfMonth = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const { data: payments, error: pError } = await supabase
         .from('expense_payments')
@@ -259,14 +257,13 @@ export async function createVariableExpense(
 }
 
 /**
- * Get all variable expenses (payments) for a household in the current month
- * Grouped or as a list
+ * Get all variable expenses (payments) for a household in a specific period
  */
-export async function getVariableExpenses(householdId: string): Promise<Array<ExpensePayment & { template: ExpenseTemplate }>> {
+export async function getVariableExpenses(householdId: string, startDate?: string, endDate?: string): Promise<Array<ExpensePayment & { template: ExpenseTemplate }>> {
     const supabase = createClient();
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    const startOfMonth = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const { data, error } = await supabase
         .from('expense_payments')
@@ -388,10 +385,9 @@ export function isPaymentOverdue(dateStr: string): boolean {
 }
 
 /**
- * Get all expenses (payments) for a household in the current month
- * This is primarily for the dashboard and backward compatibility
+ * Get all expenses (payments) for a household in a specific period
  */
-export async function getExpenses(householdId: string): Promise<Array<{
+export async function getExpenses(householdId: string, startDate?: string, endDate?: string): Promise<Array<{
     id: string;
     amount: number;
     description: string;
@@ -401,8 +397,8 @@ export async function getExpenses(householdId: string): Promise<Array<{
 }>> {
     const supabase = createClient();
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    const startOfMonth = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const { data, error } = await supabase
         .from('expense_payments')

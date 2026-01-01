@@ -51,32 +51,32 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
     };
 
     return (
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+        <div className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 group">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 {/* Left Side: Info */}
                 <div className="flex items-center gap-5 flex-1">
-                    <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
-                        <Repeat className="w-7 h-7 text-blue-600" />
+                    <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors duration-300">
+                        <Repeat className="w-7 h-7 text-blue-600 dark:text-blue-400" />
                     </div>
 
                     <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
                             {isEditing ? (
                                 <input
-                                    className="text-xl font-black text-slate-900 tracking-tight bg-slate-50 border-b-2 border-blue-500 outline-none px-1"
+                                    className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight bg-slate-50 dark:bg-slate-800 border-b-2 border-blue-500 outline-none px-1 rounded-t-lg transition-colors"
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
                                     autoFocus
                                 />
                             ) : (
-                                <h4 className="text-xl font-black text-slate-900 tracking-tight">{expense.name}</h4>
+                                <h4 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{expense.name}</h4>
                             )}
                             {expense.status && !isEditing && (
                                 <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase tracking-widest border transition-colors ${expense.status === 'paid'
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30'
                                     : expense.status === 'overdue'
-                                        ? 'bg-rose-50 text-rose-700 border-rose-100 animate-pulse'
-                                        : 'bg-blue-50 text-blue-700 border-blue-100'
+                                        ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30 animate-pulse'
+                                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30'
                                     }`}>
                                     {expense.status}
                                 </span>
@@ -85,17 +85,17 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                             {expense.category && (
-                                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400">
+                                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400 dark:text-slate-500">
                                     <Tag className="w-3.5 h-3.5" />
                                     <span>{expense.category.name}</span>
                                 </div>
                             )}
-                            <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400 capitalize">
+                            <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400 dark:text-slate-500 capitalize">
                                 <Repeat className="w-3.5 h-3.5" />
                                 <span>{expense.recurrence}</span>
                             </div>
                             {nextDueDate && (
-                                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400">
+                                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-400 dark:text-slate-500">
                                     <Calendar className="w-3.5 h-3.5" />
                                     <span>Next Due: {formatDate(nextDueDate)}</span>
                                 </div>
@@ -105,21 +105,21 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
                 </div>
 
                 {/* Right Side: Amount & Actions */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 lg:pl-6 lg:border-l border-slate-100">
+                <div className="flex flex-col sm:flex-row items-center gap-6 lg:pl-6 lg:border-l border-slate-100 dark:border-slate-800">
                     <div className="text-center sm:text-right min-w-[120px]">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Monthly Bill</span>
+                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Monthly Bill</span>
                         {isEditing ? (
                             <div className="relative">
                                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
                                 <input
                                     type="number"
-                                    className="text-2xl font-black text-slate-900 tracking-tight bg-slate-50 border-b-2 border-blue-500 outline-none pl-6 pr-1 w-28 text-right"
+                                    className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight bg-slate-50 dark:bg-slate-800 border-b-2 border-blue-500 outline-none pl-6 pr-1 w-28 text-right rounded-t-lg transition-colors"
                                     value={editAmount}
                                     onChange={(e) => setEditAmount(e.target.value)}
                                 />
                             </div>
                         ) : (
-                            <p className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(expense.default_amount)}</p>
+                            <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(expense.default_amount)}</p>
                         )}
                     </div>
 
@@ -128,7 +128,7 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
                             <>
                                 <button
                                     onClick={handleSave}
-                                    className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition shadow-sm"
+                                    className="p-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition shadow-sm"
                                     title="Save"
                                 >
                                     <Check className="w-5 h-5" />
@@ -139,7 +139,7 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
                                         setEditName(expense.name);
                                         setEditAmount(expense.default_amount.toString());
                                     }}
-                                    className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition shadow-sm"
+                                    className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition shadow-sm"
                                     title="Cancel"
                                 >
                                     <X className="w-5 h-5" />
@@ -149,29 +149,29 @@ export default function ExpenseCard({ expense, onAddPayment, onViewHistory }: Ex
                             <>
                                 <button
                                     onClick={() => onAddPayment(expense)}
-                                    className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-100"
+                                    className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-100 dark:shadow-none"
                                 >
                                     <PlusCircle className="w-4 h-4" />
                                     Pay
                                 </button>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setIsEditing(true)}
-                                        className="p-2.5 text-slate-400 hover:bg-slate-50 hover:text-blue-600 rounded-xl border border-transparent hover:border-slate-100 transition shadow-sm"
+                                        className="p-2.5 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition shadow-sm"
                                         title="Edit Template"
                                     >
                                         <Edit2 className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={handleDelete}
-                                        className="p-2.5 text-slate-400 hover:bg-slate-50 hover:text-red-500 rounded-xl border border-transparent hover:border-slate-100 transition shadow-sm"
+                                        className="p-2.5 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-500 dark:hover:text-red-400 rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition shadow-sm"
                                         title="Delete Template"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => onViewHistory(expense)}
-                                        className="p-2.5 text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-xl border border-transparent hover:border-slate-100 transition shadow-sm"
+                                        className="p-2.5 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition shadow-sm"
                                         title="View History"
                                     >
                                         <History className="w-5 h-5" />

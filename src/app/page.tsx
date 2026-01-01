@@ -16,11 +16,15 @@ import DashboardCharts from '@/features/dashboard/DashboardCharts';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import OnboardingForm from '@/features/auth/OnboardingForm';
+import { useDateFilterStore } from '@/store/dateFilterStore';
+import MonthFilter from '@/components/shared/MonthFilter';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { profile, setProfile } = useUserStore();
   const [profileAttempted, setProfileAttempted] = useState(false);
+  const { getDateRange } = useDateFilterStore();
+  const { startDate, endDate } = getDateRange();
   const router = useRouter();
 
   useEffect(() => {
@@ -61,14 +65,14 @@ export default function Dashboard() {
 
 
   const { data: income = [] } = useQuery({
-    queryKey: ['income', profile?.household_id],
-    queryFn: () => getIncome(profile!.household_id),
+    queryKey: ['income', profile?.household_id, startDate, endDate],
+    queryFn: () => getIncome(profile!.household_id, startDate, endDate),
     enabled: !!profile?.household_id,
   });
 
   const { data: expenses = [], refetch: refetchExpenses } = useQuery({
-    queryKey: ['expenses', profile?.household_id],
-    queryFn: () => getExpenses(profile!.household_id),
+    queryKey: ['expenses', profile?.household_id, startDate, endDate],
+    queryFn: () => getExpenses(profile!.household_id, startDate, endDate),
     enabled: !!profile?.household_id,
   });
 
@@ -95,12 +99,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex bg-slate-50 min-h-screen">
+    <div className="flex bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <Sidebar />
       <main className="flex-1 p-8">
-        <header className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-800">Welcome, {profile.full_name}</h2>
-          <p className="text-slate-500">Here&apos;s your family&apos;s financial overview for this month.</p>
+        <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Welcome, {profile.full_name}</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Tracking your family&apos;s global finances.</p>
+          </div>
+          <MonthFilter />
         </header>
 
         <DashboardStats
@@ -118,13 +125,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           <section>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-slate-800">Financial Goals</h3>
+              <h3 className="text-xl font-black text-slate-800 dark:text-slate-200 tracking-tight">Financial Goals</h3>
             </div>
             <div className="space-y-4">
               {goals.length > 0 ? (
                 goals.map((goal) => <GoalCard key={goal.id} goal={goal} />)
               ) : (
-                <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 text-slate-400">
+                <div className="p-12 text-center bg-white dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-medium">
                   No goals set yet.
                 </div>
               )}
@@ -137,14 +144,14 @@ export default function Dashboard() {
             }} />
 
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-4">Recent Expenses</h3>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <h3 className="text-xl font-black text-slate-800 dark:text-slate-200 mb-4 tracking-tight">Recent Expenses</h3>
+              <div className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-300">
                 {expenses.slice(0, 5).length > 0 ? (
                   expenses.slice(0, 5).map((expense) => (
-                    <div key={expense.id} className="p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
+                    <div key={expense.id} className="p-4 border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-semibold text-slate-800">{expense.description}</p>
+                          <p className="font-bold text-slate-800 dark:text-slate-200">{expense.description || 'Expense'}</p>
                           <p className="text-xs text-slate-500">{expense.category?.name || 'Uncategorized'}</p>
                         </div>
                         <p className="font-bold text-slate-800">

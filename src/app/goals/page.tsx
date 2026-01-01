@@ -66,27 +66,27 @@ export default function GoalsPage() {
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                     <div>
-                        <h2 className="text-4xl font-black text-slate-800 tracking-tight">Financial Goals</h2>
-                        <p className="text-slate-500 font-medium">Plan and track your savings progress.</p>
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Financial Goals</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium italic">Plan and track your savings progress.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="flex bg-slate-100 p-1 rounded-xl mr-2">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl mr-2 shadow-inner">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
+                                className={`p-2.5 rounded-xl transition-all duration-300 ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 <LayoutGrid className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
+                                className={`p-2.5 rounded-xl transition-all duration-300 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 <List className="w-5 h-5" />
                             </button>
                         </div>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
-                            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-200"
+                            className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 dark:shadow-none"
                         >
                             <Plus className="w-5 h-5" />
                             New Goal
@@ -94,18 +94,20 @@ export default function GoalsPage() {
                     </div>
                 </div>
 
-                <div className={`mb-8 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 ${totalPercentage === 100 ? 'bg-green-50 border border-green-100 text-green-800' : 'bg-amber-50 border border-amber-100 text-amber-800'}`}>
+                <div className={`mb-8 p-8 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors duration-300 ${totalPercentage === 100
+                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 text-green-800 dark:text-green-300'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-300'}`}>
                     <div>
-                        <p className="text-lg font-black flex items-center gap-2">
+                        <p className="text-xl font-black flex items-center gap-2 tracking-tight">
                             Total Priority Allocation: {totalPercentage}%
                         </p>
                         {totalPercentage !== 100 && (
-                            <p className="text-sm font-medium opacity-80">Your allocations should ideally sum to 100% for full distribution.</p>
+                            <p className="text-sm font-medium opacity-80 italic">Your allocations should ideally sum to 100% for full distribution.</p>
                         )}
                     </div>
-                    <div className="h-3 flex-1 max-w-md bg-white/50 rounded-full overflow-hidden border border-black/5">
+                    <div className="h-4 flex-1 max-w-md bg-white/50 dark:bg-slate-900/40 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                         <div
-                            className={`h-full transition-all duration-700 ${totalPercentage === 100 ? 'bg-green-500' : 'bg-amber-500'}`}
+                            className={`h-full transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) ${totalPercentage === 100 ? 'bg-green-500' : 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`}
                             style={{ width: `${Math.min(totalPercentage, 100)}%` }}
                         />
                     </div>
@@ -114,21 +116,21 @@ export default function GoalsPage() {
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-44 bg-slate-50 rounded-2xl animate-pulse border border-slate-100" />
+                            <div key={i} className="h-44 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] animate-pulse border border-slate-100 dark:border-slate-800" />
                         ))}
                     </div>
                 ) : goals.length === 0 ? (
-                    <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <Plus className="w-8 h-8 text-slate-300" />
+                    <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/40 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 transition-colors">
+                        <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                            <Plus className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800">No goals yet</h3>
-                        <p className="text-slate-500 mb-6">Create your first goal to start tracking your savings.</p>
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight mb-2">No goals yet</h3>
+                        <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium italic">Create your first goal to start tracking your savings.</p>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
-                            className="bg-white border border-slate-200 px-6 py-2 rounded-xl font-bold hover:bg-slate-50 transition text-slate-800"
+                            className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-8 py-3 rounded-2xl font-black hover:bg-slate-50 dark:hover:bg-slate-700 transition text-slate-800 dark:text-slate-200 shadow-sm active:scale-95"
                         >
-                            Add Goal
+                            Add Your First Goal
                         </button>
                     </div>
                 ) : (
@@ -137,58 +139,58 @@ export default function GoalsPage() {
                             <div key={goal.id} className="group relative">
                                 <GoalCard goal={goal} />
 
-                                <div className="absolute bottom-2 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute bottom-2 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
                                     <button
                                         onClick={() => startEdit(goal)}
-                                        className="p-2 bg-white/90 backdrop-blur shadow-sm border border-slate-200 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition"
+                                        className="p-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/40 hover:text-blue-600 dark:hover:text-blue-400 transition active:scale-90"
                                         title="Edit Goal"
                                     >
-                                        <Edit2 className="w-4 h-4 text-amber-500" />
+                                        <Edit2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(goal.id)}
-                                        className="p-2 bg-white/90 backdrop-blur shadow-sm border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 transition"
+                                        className="p-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur shadow-lg border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 hover:text-red-600 dark:hover:text-red-400 transition active:scale-90"
                                         title="Delete Goal"
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
                                     </button>
                                 </div>
 
                                 {editingGoal === goal.id && (
-                                    <div className="mt-4 p-5 bg-white rounded-2xl border-2 border-blue-100 shadow-xl animate-in slide-in-from-top-2 duration-200 relative z-10">
-                                        <div className="grid grid-cols-2 gap-4">
+                                    <div className="mt-4 p-6 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-blue-100 dark:border-blue-900/30 shadow-2xl animate-in slide-in-from-top-2 duration-300 relative z-10">
+                                        <div className="grid grid-cols-2 gap-6">
                                             <div>
-                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Target Amount</label>
+                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Target Amount</label>
                                                 <input
                                                     type="number"
-                                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700"
+                                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 dark:text-slate-100 transition"
                                                     value={editValues.target}
                                                     onChange={(e) => setEditValues({ ...editValues, target: parseFloat(e.target.value) })}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Allocation %</label>
+                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Allocation %</label>
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     max="100"
-                                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700"
+                                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 font-black text-slate-800 dark:text-slate-100 transition"
                                                     value={editValues.percentage}
                                                     onChange={(e) => setEditValues({ ...editValues, percentage: parseFloat(e.target.value) })}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex gap-2 mt-4">
+                                        <div className="flex gap-3 mt-6">
                                             <button
                                                 onClick={() => handleUpdate(goal.id)}
-                                                className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition shadow-lg shadow-blue-100"
+                                                className="flex-1 bg-blue-600 text-white py-3.5 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-700 transition shadow-lg shadow-blue-200 dark:shadow-none active:scale-95"
                                             >
-                                                <Save className="w-4 h-4" />
-                                                Save Updates
+                                                <Save className="w-5 h-5" />
+                                                Save Changes
                                             </button>
                                             <button
                                                 onClick={() => setEditingGoal(null)}
-                                                className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition"
+                                                className="px-6 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95"
                                             >
                                                 Cancel
                                             </button>
