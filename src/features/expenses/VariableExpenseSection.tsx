@@ -1,0 +1,183 @@
+import { ExpensePayment, ExpenseTemplate, updatePayment, deletePayment } from '@/services/expenses';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { ShoppingBag, Utensils, Car, Plane, Receipt, Edit2, Trash2, Fuel, Check, X, CreditCard, Heart, Home, Zap, Coffee } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+
+interface VariableExpenseSectionProps {
+    expenses: Array<ExpensePayment & { template: ExpenseTemplate }>;
+    onAddExpense: () => void;
+}
+
+export default function VariableExpenseSection({ expenses, onAddExpense }: VariableExpenseSectionProps) {
+    const queryClient = useQueryClient();
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editAmount, setEditAmount] = useState('');
+
+    const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => deletePayment(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['variableExpenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, amount }: { id: string; amount: number }) => updatePayment(id, { amount }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['variableExpenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            setEditingId(null);
+        },
+    });
+
+    const handleDelete = (id: string) => {
+        if (confirm('Are you sure you want to delete this expense record?')) {
+            deleteMutation.mutate(id);
+        }
+    };
+
+    const handleEdit = (expense: ExpensePayment) => {
+        setEditingId(expense.id);
+        setEditAmount(expense.amount.toString());
+    };
+
+    const handleUpdate = (id: string) => {
+        updateMutation.mutate({ id, amount: parseFloat(editAmount) });
+    };
+
+    const getIcon = (categoryName: string = '', templateName: string = '') => {
+        const name = (categoryName || templateName).toLowerCase();
+        if (name.includes('grocery')) return <ShoppingBag className="w-5 h-5 text-emerald-500" />;
+        if (name.includes('food') || name.includes('restaurant') || name.includes('eat')) return <Utensils className="w-5 h-5 text-orange-500" />;
+        if (name.includes('coffee') || name.includes('cafe') || name.includes('starbucks')) return <Coffee className="w-5 h-5 text-amber-600" />;
+        if (name.includes('car') || name.includes('transport') || name.includes('uber')) return <Car className="w-5 h-5 text-blue-500" />;
+        if (name.includes('travel') || name.includes('flight') || name.includes('hotel')) return <Plane className="w-5 h-5 text-indigo-500" />;
+        if (name.includes('fuel') || name.includes('gas') || name.includes('petrol')) return <Fuel className="w-5 h-5 text-purple-500" />;
+        if (name.includes('shopping') || name.includes('amazon') || name.includes('cloth')) return <CreditCard className="w-5 h-5 text-pink-500" />;
+        if (name.includes('health') || name.includes('doctor') || name.includes('pharmacy')) return <Heart className="w-5 h-5 text-red-500" />;
+        if (name.includes('home') || name.includes('rent') || name.includes('furniture')) return <Home className="w-5 h-5 text-slate-800" />;
+        if (name.includes('electric') || name.includes('bill') || name.includes('utility')) return <Zap className="w-5 h-5 text-yellow-500" />;
+        return <Receipt className="w-5 h-5 text-slate-400" />;
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden mb-12">
+                <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/30">
+                    <div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight">Recent Spending</h3>
+                        <p className="text-sm text-slate-500 font-medium">Logged transactions for the current period</p>
+                    </div>
+                    <div className="px-5 py-2.5 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total Spent</span>
+                        <span className="text-xl font-black text-slate-900">{formatCurrency(totalSpent)}</span>
+                    </div>
+                </div>
+
+                <div className="divide-y divide-slate-50">
+                    {expenses.length > 0 ? (
+                        expenses.map((expense) => (
+                            <div key={expense.id} className="p-6 group hover:bg-slate-50 transition-all duration-300">
+                                <div className="flex items-center justify-between gap-6">
+                                    <div className="flex items-center gap-5 flex-1">
+                                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 group-hover:scale-110 transition-transform duration-300">
+                                            {getIcon(expense.template.category?.name, expense.template.name)}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{expense.template.name}</h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{formatDate(expense.due_date)}</p>
+                                                <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${expense.is_paid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                    {expense.is_paid ? 'SETTLED' : 'PENDING'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-6">
+                                        {editingId === expense.id ? (
+                                            <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                                    <input
+                                                        type="number"
+                                                        className="w-32 pl-7 pr-4 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-4 focus:ring-blue-50/50 focus:border-blue-500 outline-none font-black text-slate-800 shadow-sm"
+                                                        value={editAmount}
+                                                        onChange={(e) => setEditAmount(e.target.value)}
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => handleUpdate(expense.id)}
+                                                        className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition shadow-sm"
+                                                        title="Save Changes"
+                                                    >
+                                                        <Check className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditingId(null)}
+                                                        className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition shadow-sm"
+                                                        title="Discard Changes"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(expense.amount)}</p>
+                                                </div>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                                                    <button
+                                                        onClick={() => handleEdit(expense)}
+                                                        className="p-2.5 text-slate-400 hover:bg-white hover:text-blue-500 rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition"
+                                                        title="Edit Transaction"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(expense.id)}
+                                                        className="p-2.5 text-slate-400 hover:bg-white hover:text-red-500 rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition"
+                                                        title="Delete Transaction"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-20 text-center bg-white">
+                            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-200">
+                                <Receipt className="w-10 h-10" />
+                            </div>
+                            <h4 className="text-xl font-bold text-slate-800 mb-2">No spending logged yet</h4>
+                            <p className="text-slate-400 max-w-xs mx-auto mb-8 font-medium">Keep track of your daily expenses, shopping, and dining out here.</p>
+                            <button
+                                onClick={onAddExpense}
+                                className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition shadow-xl shadow-blue-100 active:scale-95"
+                            >
+                                Log your first expense
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {expenses.length > 10 && (
+                    <div className="p-6 bg-slate-50/50 text-center border-t border-slate-50">
+                        <button className="text-sm font-black text-blue-600 hover:text-blue-700 tracking-wide uppercase">Load More Transactions</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
