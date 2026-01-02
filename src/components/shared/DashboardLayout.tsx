@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Image from 'next/image';
+import { getProfile } from '@/services/household';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading } = useAuth();
@@ -21,16 +22,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, [user, authLoading, router]);
 
     useEffect(() => {
-        if (user && !profile) {
-            console.log("Profile details", user);
-            setProfile({
-                id: user.id,
-                household_id: 'default-household',
-                full_name: user.user_metadata.full_name || 'User',
-                role: 'admin',
-            });
+        async function loadProfile() {
+            if (user && !profile) {
+                const data = await getProfile(user.id);
+                if (data) {
+                    setProfile({
+                        id: data.id,
+                        household_id: data.household_id,
+                        full_name: data.full_name,
+                        role: data.role,
+                    });
+
+                    if (!data.household_id) {
+                        router.push('/onboarding');
+                    }
+                }
+            }
         }
-    }, [user, profile, setProfile]);
+        loadProfile();
+    }, [user, profile, setProfile, router]);
 
     if (authLoading || !user || !profile) {
         return (

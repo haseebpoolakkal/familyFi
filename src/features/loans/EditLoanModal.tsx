@@ -33,6 +33,7 @@ export default function EditLoanModal({ loan, isOpen, onClose, onSuccess }: Prop
                 interestRate: Number(data.get('rate')),
                 tenureMonths: Number(data.get('tenure')),
                 startDate: data.get('start') as string,
+                interestType: data.get('interestType') as 'reducing' | 'fixed',
             });
             onSuccess();
             onClose();
@@ -71,6 +72,17 @@ export default function EditLoanModal({ loan, isOpen, onClose, onSuccess }: Prop
                     defaultValue={loan.loan_type || ''}
                     placeholder="e.g. Personal, Home"
                 />
+
+                <Select
+                    name="interestType"
+                    label="Interest Calculation"
+                    defaultValue={loan.interest_type || 'reducing'}
+                    disabled={hasPayments}
+                    className={hasPayments ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''}
+                >
+                    <option value="reducing">Reducing Balance (Standard)</option>
+                    <option value="fixed">Flat Rate / Fixed Interest</option>
+                </Select>
 
                 <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -139,6 +151,29 @@ function Input({ label, className, ...props }: InputProps) {
                 {...props}
                 className={`w-full mt-1 p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${className ?? ''}`}
             />
+        </div>
+    );
+}
+
+interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+    label: string;
+}
+
+function Select({ label, className, children, ...props }: SelectProps) {
+    return (
+        <div>
+            <label className="text-sm font-bold text-slate-500">{label}</label>
+            <div className="relative">
+                <select
+                    {...props}
+                    className={`w-full mt-1 p-3 rounded-xl border appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${className ?? ''}`}
+                >
+                    {children}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+            </div>
         </div>
     );
 }

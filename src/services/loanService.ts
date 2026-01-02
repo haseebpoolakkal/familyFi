@@ -14,6 +14,7 @@ export type Loan = {
     total_payable: number;
     outstanding_principal: number;
     status: 'active' | 'completed' | 'closed_early';
+    interest_type?: 'reducing' | 'fixed';
 };
 
 export type LoanInstallment = {
@@ -36,14 +37,34 @@ export interface CreateLoanInput {
     startDate: string;
     tenureMonths?: number;
     emiAmount?: number;
+    interestType: 'reducing' | 'fixed';
+    householdId: string;
 }
 
 function calculateLoan(
     principal: number,
     annualRate: number,
     tenureMonths?: number,
-    emiAmount?: number
+    emiAmount?: number,
+    interestType: 'reducing' | 'fixed' = 'reducing'
 ) {
+    if (interestType === 'fixed') {
+        // Flat Rate Logic
+        if (!tenureMonths) throw new Error('Tenure is required for Fixed Interest loans');
+
+        const totalInterest = principal * (annualRate / 100) * (tenureMonths / 12);
+        const totalPayable = principal + totalInterest;
+        const emi = totalPayable / tenureMonths;
+
+        return {
+            emi: round(emi),
+            tenure: tenureMonths,
+            totalPayable: round(totalPayable),
+            totalInterest: round(totalInterest)
+        };
+    }
+
+    // Reducing Balance Logic (Existing)
     const r = annualRate / 12 / 100;
 
     if (tenureMonths) {
@@ -101,12 +122,14 @@ export async function createLoan(input: CreateLoanInput) {
         input.principalAmount,
         input.interestRate,
         input.tenureMonths,
-        input.emiAmount
+        input.emiAmount,
+        input.interestType
     );
 
     const { data, error } = await supabase
         .from('loans')
         .insert({
+            household_id: input.householdId,
             lender_name: input.lenderName,
             loan_type: input.loanType,
             principal_amount: input.principalAmount,
@@ -119,6 +142,7 @@ export async function createLoan(input: CreateLoanInput) {
             total_payable: totalPayable,
             total_interest: totalInterest,
             outstanding_principal: input.principalAmount,
+            interest_type: input.interestType,
         })
         .select()
         .maybeSingle();
@@ -191,11 +215,13 @@ export async function updateLoan(loanId: string, input: Partial<CreateLoanInput>
         const { data: currentLoan } = await supabase.from('loans').select('*').eq('id', loanId).single();
         if (!currentLoan) throw new Error('Loan not found');
 
+        const type = (input.interestType as 'reducing' | 'fixed') ?? currentLoan.interest_type ?? 'reducing';
         const p = input.principalAmount ?? currentLoan.principal_amount;
         const r = input.interestRate ?? currentLoan.interest_rate;
         const t = input.tenureMonths ?? currentLoan.tenure_months;
+
         // Re-calculate
-        const { emi, tenure, totalPayable, totalInterest } = calculateLoan(p, r, t);
+        const { emi, tenure, totalPayable, totalInterest } = calculateLoan(p, r, t, undefined, type);
 
         updates.principal_amount = p;
         updates.interest_rate = r;
@@ -207,6 +233,7 @@ export async function updateLoan(loanId: string, input: Partial<CreateLoanInput>
         updates.total_interest = totalInterest;
         updates.start_date = input.startDate ?? currentLoan.start_date;
         updates.outstanding_principal = p; // Reset outstanding to new principal since no payments exist
+        updates.interest_type = type;
     }
 
     // 5. Update Loan Record

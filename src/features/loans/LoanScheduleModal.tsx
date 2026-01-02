@@ -22,7 +22,7 @@ export default function LoanScheduleModal({ loan, isOpen, onClose }: Props) {
         {data.map(row => (
           <div
             key={row.id}
-            className="grid grid-cols-4 gap-2 p-3 bg-slate-50 rounded-xl text-sm"
+            className="grid grid-cols-4 gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm"
           >
             <span>{row.month}</span>
             <span>{formatCurrency(row.principal_component)}</span>

@@ -115,6 +115,9 @@ create table if not exists loans (
 
   status text not null default 'active'
     check (status in ('active', 'completed', 'closed_early')),
+    
+  interest_type text not null default 'reducing'
+    check (interest_type in ('reducing', 'fixed')),
 
   created_at timestamp with time zone default now()
 );
@@ -140,6 +143,114 @@ create table if not exists loan_installments (
 
   unique (loan_id, installment_month)
 );
+
+-- RLS Policies omitted for brevity ...
+
+-- Functions
+
+create or replace function generate_loan_installments(
+  p_loan_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_household_id uuid;
+  v_principal numeric;
+  v_rate numeric;
+  v_emi numeric;
+  v_tenure integer;
+  v_start_date date;
+  v_interest_type text;
+  
+  v_balance numeric;
+  v_interest numeric;
+  v_principal_component numeric;
+  v_total_interest numeric;
+  v_start_month date;
+  i integer;
+begin
+  select
+    household_id,
+    principal_amount,
+    interest_rate,
+    calculated_emi,
+    calculated_tenure,
+    start_date,
+    interest_type
+  into
+    v_household_id,
+    v_principal,
+    v_rate,
+    v_emi,
+    v_tenure,
+    v_start_date,
+    v_interest_type
+  from loans
+  where id = p_loan_id;
+
+  v_start_month := date_trunc('month', v_start_date);
+  
+  if v_interest_type = 'fixed' then
+    -- Fixed/Flat Rate Calculation
+    v_total_interest := round(v_principal * (v_rate / 100.0) * (v_tenure / 12.0), 2);
+    
+    v_principal_component := round(v_principal / v_tenure, 2);
+    v_interest := round(v_total_interest / v_tenure, 2);
+    
+    for i in 1..v_tenure loop
+       insert into loan_installments (
+        loan_id,
+        household_id,
+        installment_month,
+        emi_amount,
+        principal_component,
+        interest_component
+      ) values (
+        p_loan_id,
+        v_household_id,
+        v_start_month + (i - 1) * interval '1 month',
+        v_emi,
+        v_principal_component,
+        v_interest
+      );
+    end loop;
+  else
+    -- Reducing Balance Calculation
+    v_balance := v_principal;
+    v_rate := v_rate / 1200; -- monthly rate
+
+    for i in 1..v_tenure loop
+      v_interest := round(v_balance * v_rate, 2);
+      v_principal_component := round(v_emi - v_interest, 2);
+
+      if i = v_tenure then
+         v_principal_component := v_balance;
+         v_emi := v_principal_component + v_interest;
+      end if;
+
+      insert into loan_installments (
+        loan_id,
+        household_id,
+        installment_month,
+        emi_amount,
+        principal_component,
+        interest_component
+      ) values (
+        p_loan_id,
+        v_household_id,
+        v_start_month + (i - 1) * interval '1 month',
+        v_emi,
+        v_principal_component,
+        v_interest
+      );
+
+      v_balance := v_balance - v_principal_component;
+    end loop;
+  end if;
+end;
+$$;
 
 create index if not exists idx_loans_household
 on loans(household_id);
@@ -489,6 +600,65 @@ begin
 end;
 $$;
 
+create or replace function recalculate_loan_schedule(p_loan_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_loan record;
+  v_balance numeric;
+  v_rate numeric;
+  v_new_interest numeric;
+  v_new_principal_component numeric;
+  v_installment record;
+begin
+  select * into v_loan from loans where id = p_loan_id;
+  
+  -- Only recalculate for reducing balance loans
+  if v_loan.interest_type = 'fixed' then return; end if;
+
+  v_balance := v_loan.outstanding_principal;
+  v_rate := v_loan.interest_rate / 1200; -- monthly
+
+  for v_installment in 
+    select * from loan_installments 
+    where loan_id = p_loan_id and paid = false 
+    order by installment_month asc
+  loop
+    if v_balance <= 0 then
+      -- Loan is fully paid, remove remaining future installments
+      delete from loan_installments where id = v_installment.id;
+    else
+      v_new_interest := round(v_balance * v_rate, 2);
+      
+      -- Strategy: Tenure Reduction (Keep EMI same)
+      v_new_principal_component := round(v_loan.emi_amount - v_new_interest, 2);
+      
+      -- Check if this is the final payment (outstanding < normal principal component)
+      if v_balance < v_new_principal_component then
+         v_new_principal_component := v_balance;
+         
+         update loan_installments 
+         set emi_amount = v_new_principal_component + v_new_interest,
+             principal_component = v_new_principal_component,
+             interest_component = v_new_interest
+         where id = v_installment.id;
+         
+         v_balance := 0;
+      else
+         update loan_installments 
+         set principal_component = v_new_principal_component,
+             interest_component = v_new_interest
+         where id = v_installment.id;
+         
+         v_balance := v_balance - v_new_principal_component;
+      end if;
+    end if;
+  end loop;
+end;
+$$;
+
 create or replace function apply_loan_prepayment(
   p_installment_id uuid,
   p_extra_amount numeric
@@ -512,10 +682,20 @@ begin
   where id = p_installment_id;
 
   -- Reduce outstanding principal
+  -- (The p_extra_amount is the amount ABOVE the scheduled principal component of this installment? 
+  --  No, usually 'Prepayment' implies the total amount paid. 
+  --  But the frontend calculates 'excess' before calling this. 
+  --  Let's check `services/loanService.ts`. 
+  --  Yes: `const excess = amount - installment.emi_amount;`
+  --  So p_extra_amount is strictly the extra payment.)
+  
   update loans
   set outstanding_principal =
       greatest(outstanding_principal - p_extra_amount, 0)
   where id = v_loan_id;
+
+  -- Recalculate future schedule
+  perform recalculate_loan_schedule(v_loan_id);
 end;
 $$;
 

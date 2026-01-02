@@ -42,7 +42,9 @@ export default function LoansPage() {
         enabled: !!profile?.household_id,
     });
 
-    const activeLoans = loans.filter(l => l.status === 'active');
+    const [showClosed, setShowClosed] = useState(false);
+
+    const activeLoans = loans.filter(l => showClosed ? true : l.status === 'active');
     const isLoading = loadingLoans || loadingInstallments;
 
     // Summary calculations
@@ -116,13 +118,24 @@ export default function LoansPage() {
 
                     <div className="flex flex-col items-end gap-4">
                         <MonthFilter />
-                        <button
-                            onClick={() => setIsAddLoanOpen(true)}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Add Loan
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-2 text-sm font-medium text-slate-500 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={showClosed}
+                                    onChange={e => setShowClosed(e.target.checked)}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                Show Closed
+                            </label>
+                            <button
+                                onClick={() => setIsAddLoanOpen(true)}
+                                className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 transition"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Add Loan
+                            </button>
+                        </div>
                     </div>
                 </div>
 

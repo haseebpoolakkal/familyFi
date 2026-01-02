@@ -111,7 +111,7 @@ export default function LoanCard({ loan, onAddPayment, onViewSchedule, onEdit }:
                 </button>
                 <button
                     onClick={() => onViewSchedule(loan)}
-                    className="flex-1 border border-slate-200 py-3 rounded-xl font-bold hover:bg-slate-50 transition"
+                    className="flex-1 border border-slate-200 py-3 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                 >
                     Schedule
                 </button>
