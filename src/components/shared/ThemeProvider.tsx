@@ -9,6 +9,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
     // Only apply theme after mounting to ensure hydration is complete
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

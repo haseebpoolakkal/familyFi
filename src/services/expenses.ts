@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 
+import { Visibility } from '@/types';
+
 /**
  * Expense Template - Defines the rule for an expense (fixed or variable)
  */
@@ -13,6 +15,8 @@ export interface ExpenseTemplate {
     recurrence: 'monthly' | 'quarterly' | 'yearly' | null;
     due_day: number | null;
     created_at: string;
+    owner_profile_id: string;
+    visibility: Visibility;
     category?: {
         id: string;
         name: string;
@@ -152,6 +156,8 @@ export async function getExpensePayments(templateId: string): Promise<ExpensePay
     return data || [];
 }
 
+import { shareRecord } from './sharing';
+
 /**
  * Create a fixed recurring expense template
  */
@@ -161,9 +167,15 @@ export async function createFixedExpenseTemplate(
     defaultAmount: number,
     categoryId: string,
     recurrence: 'monthly' | 'quarterly' | 'yearly',
-    dueDay: number
+    dueDay: number,
+    // New Params
+    visibility: Visibility = 'household', // Default Expenses -> Household
+    sharedWith: string[] = []
 ): Promise<ExpenseTemplate> {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
         .from('expense_templates')
         .insert([{
@@ -174,6 +186,8 @@ export async function createFixedExpenseTemplate(
             is_fixed: true,
             recurrence,
             due_day: dueDay,
+            visibility,
+            owner_profile_id: user.id
         }])
         .select('*, category:expense_categories(*)')
         .single();
@@ -181,6 +195,10 @@ export async function createFixedExpenseTemplate(
     if (error) {
         console.error('Error creating fixed expense template:', error);
         throw error;
+    }
+
+    if (visibility === 'custom' && sharedWith.length && data) {
+        await shareRecord('expense_templates', data.id, sharedWith);
     }
 
     return data;
@@ -195,7 +213,10 @@ export async function createVariableExpense(
     amount: number,
     categoryId: string,
     dueDate: string,
-    isPaid: boolean = true
+    isPaid: boolean = true,
+    // New Params
+    visibility: Visibility = 'household',
+    sharedWith: string[] = []
 ): Promise<{ template: ExpenseTemplate; payment: ExpensePayment }> {
     const supabase = createClient();
 
@@ -212,8 +233,12 @@ export async function createVariableExpense(
 
     if (existingTemplate) {
         template = existingTemplate;
+        // Optimization: We could update visibility if different? But let's keep existing structure.
     } else {
         // Create new template
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
         const { data: newTemplate, error: templateError } = await supabase
             .from('expense_templates')
             .insert([{
@@ -224,6 +249,8 @@ export async function createVariableExpense(
                 is_fixed: false,
                 recurrence: null,
                 due_day: null,
+                visibility,
+                owner_profile_id: user.id
             }])
             .select('*, category:expense_categories(*)')
             .single();
@@ -233,6 +260,10 @@ export async function createVariableExpense(
             throw templateError;
         }
         template = newTemplate;
+
+        if (visibility === 'custom' && sharedWith.length && template) {
+            await shareRecord('expense_templates', template.id, sharedWith);
+        }
     }
 
     // Create payment

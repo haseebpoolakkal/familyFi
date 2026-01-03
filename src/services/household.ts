@@ -29,25 +29,31 @@ export async function createHousehold(name: string, fullName?: string) {
 }
 
 export async function joinHousehold(userId: string, householdId: string) {
-    // Check if household exists
     const supabaseServer = createClient();
-    const { data: household, error: hError } = await supabaseServer
-        .from('households')
-        .select('id')
-        .eq('id', householdId)
-        .maybeSingle();
-
-    if (hError || !household) {
-        throw new Error('Invalid Household ID. Please check and try again.');
-    }
 
     const { error } = await supabaseServer
-        .from('profiles')
-        .upsert({
-            id: userId,
-            household_id: householdId,
-            role: 'member'
+        .rpc('join_existing_household', {
+            p_household_id: householdId
         });
 
-    if (error) throw error;
+    if (error) {
+        if (error.message.includes('Invalid Household ID')) {
+            throw new Error('Invalid Household ID. Please check and try again.');
+        }
+        throw error;
+    }
+}
+
+export async function getHouseholdMembers(householdId: string) {
+    const supabaseServer = createClient();
+    const { data, error } = await supabaseServer
+        .from('profiles')
+        .select('*')
+        .eq('household_id', householdId);
+
+    if (error) {
+        console.error('Error fetching household members:', error);
+        return [];
+    }
+    return data;
 }

@@ -6,7 +6,8 @@ import { useUserStore } from '@/store/userStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { getProfile } from '@/services/household';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading } = useAuth();
@@ -21,16 +22,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, [user, authLoading, router]);
 
     useEffect(() => {
-        if (user && !profile) {
-            console.log("Profile details", user);
-            setProfile({
-                id: user.id,
-                household_id: 'default-household',
-                full_name: user.user_metadata.full_name || 'User',
-                role: 'admin',
-            });
+        async function loadProfile() {
+            if (user && !profile) {
+                const data = await getProfile(user.id);
+                if (data) {
+                    setProfile({
+                        id: data.id,
+                        household_id: data.household_id,
+                        full_name: data.full_name,
+                        role: data.role,
+                    });
+
+                    if (!data.household_id) {
+                        router.push('/onboarding');
+                    }
+                }
+            }
         }
-    }, [user, profile, setProfile]);
+        loadProfile();
+    }, [user, profile, setProfile, router]);
 
     if (authLoading || !user || !profile) {
         return (
@@ -48,8 +58,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {/* Mobile Header */}
                 <header className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl shadow-md flex items-center justify-center overflow-hidden border border-slate-100 dark:border-slate-700">
-                            <img src="/logo.png" alt="FamilyFy" className="w-full h-full object-cover scale-110" />
+                        <div className="w-10 h-10 relative bg-white dark:bg-slate-800 rounded-xl shadow-md flex items-center justify-center overflow-hidden border border-slate-100 dark:border-slate-700">
+                            <Image src="/logo.png" alt="FamilyFy" fill className="object-cover scale-110" />
                         </div>
                         <span className="text-xl font-black text-slate-900 dark:text-slate-50 tracking-tighter">
                             FamilyFi

@@ -88,6 +88,180 @@ CREATE TABLE expense_payments (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 11. Loan Table
+create table if not exists loans (
+  id uuid primary key default gen_random_uuid(),
+
+  household_id uuid not null references households(id) on delete cascade,
+
+  lender_name text not null,
+  loan_type text,
+
+  principal_amount numeric(12,2) not null,
+  interest_rate numeric(5,2) not null,
+
+  tenure_months integer,
+  emi_amount numeric(12,2),
+
+  start_date date not null,
+
+  calculated_emi numeric(12,2) not null,
+  calculated_tenure integer not null,
+
+  total_payable numeric(12,2) not null,
+  total_interest numeric(12,2) not null,
+
+  outstanding_principal numeric(12,2) not null,
+
+  status text not null default 'active'
+    check (status in ('active', 'completed', 'closed_early')),
+    
+  interest_type text not null default 'reducing'
+    check (interest_type in ('reducing', 'fixed')),
+
+  created_at timestamp with time zone default now()
+);
+
+-- 12. Loan Installments Table
+create table if not exists loan_installments (
+  id uuid primary key default gen_random_uuid(),
+
+  loan_id uuid not null references loans(id) on delete cascade,
+  household_id uuid not null references households(id) on delete cascade,
+
+  installment_month date not null
+    check (installment_month = date_trunc('month', installment_month)),
+
+  emi_amount numeric(12,2) not null,
+  principal_component numeric(12,2) not null,
+  interest_component numeric(12,2) not null,
+
+  paid boolean default false,
+  paid_on date,
+
+  created_at timestamp with time zone default now(),
+
+  unique (loan_id, installment_month)
+);
+
+-- RLS Policies omitted for brevity ...
+
+-- Functions
+
+create or replace function generate_loan_installments(
+  p_loan_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_household_id uuid;
+  v_principal numeric;
+  v_rate numeric;
+  v_emi numeric;
+  v_tenure integer;
+  v_start_date date;
+  v_interest_type text;
+  
+  v_balance numeric;
+  v_interest numeric;
+  v_principal_component numeric;
+  v_total_interest numeric;
+  v_start_month date;
+  i integer;
+begin
+  select
+    household_id,
+    principal_amount,
+    interest_rate,
+    calculated_emi,
+    calculated_tenure,
+    start_date,
+    interest_type
+  into
+    v_household_id,
+    v_principal,
+    v_rate,
+    v_emi,
+    v_tenure,
+    v_start_date,
+    v_interest_type
+  from loans
+  where id = p_loan_id;
+
+  v_start_month := date_trunc('month', v_start_date);
+  
+  if v_interest_type = 'fixed' then
+    -- Fixed/Flat Rate Calculation
+    v_total_interest := round(v_principal * (v_rate / 100.0) * (v_tenure / 12.0), 2);
+    
+    v_principal_component := round(v_principal / v_tenure, 2);
+    v_interest := round(v_total_interest / v_tenure, 2);
+    
+    for i in 1..v_tenure loop
+       insert into loan_installments (
+        loan_id,
+        household_id,
+        installment_month,
+        emi_amount,
+        principal_component,
+        interest_component
+      ) values (
+        p_loan_id,
+        v_household_id,
+        v_start_month + (i - 1) * interval '1 month',
+        v_emi,
+        v_principal_component,
+        v_interest
+      );
+    end loop;
+  else
+    -- Reducing Balance Calculation
+    v_balance := v_principal;
+    v_rate := v_rate / 1200; -- monthly rate
+
+    for i in 1..v_tenure loop
+      v_interest := round(v_balance * v_rate, 2);
+      v_principal_component := round(v_emi - v_interest, 2);
+
+      if i = v_tenure then
+         v_principal_component := v_balance;
+         v_emi := v_principal_component + v_interest;
+      end if;
+
+      insert into loan_installments (
+        loan_id,
+        household_id,
+        installment_month,
+        emi_amount,
+        principal_component,
+        interest_component
+      ) values (
+        p_loan_id,
+        v_household_id,
+        v_start_month + (i - 1) * interval '1 month',
+        v_emi,
+        v_principal_component,
+        v_interest
+      );
+
+      v_balance := v_balance - v_principal_component;
+    end loop;
+  end if;
+end;
+$$;
+
+create index if not exists idx_loans_household
+on loans(household_id);
+
+create index if not exists idx_installments_household
+on loan_installments(household_id);
+
+create index if not exists idx_installments_loan_paid
+on loan_installments(loan_id, paid);
+
+
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE households ENABLE ROW LEVEL SECURITY;
@@ -98,6 +272,8 @@ ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE goal_distributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expense_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expense_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loan_installments ENABLE ROW LEVEL SECURITY;
 
 
 -- POLICIES
@@ -159,8 +335,35 @@ USING (
   )
 );
 
+create policy "household loans access"
+on loans
+for all
+using (household_id = get_user_household_id())
+with check (household_id = get_user_household_id());
+
+create policy "household loan installments access"
+on loan_installments
+for all
+using (household_id = get_user_household_id())
+with check (household_id = get_user_household_id());
+
 
 -- FUNCTIONS & TRIGGERS
+
+create or replace function get_user_household_id()
+returns uuid
+language sql
+stable
+security definer
+as $$
+  select household_id
+  from profiles
+  where id = auth.uid()
+  limit 1;
+$$;
+
+grant execute on function get_user_household_id() to authenticated;
+
 
 -- Set household owner on creation
 CREATE OR REPLACE FUNCTION set_household_owner()
@@ -256,3 +459,266 @@ BEGIN
   RETURN new_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+create or replace function validate_installment_household()
+returns trigger as $$
+begin
+  if not exists (
+    select 1
+    from loans
+    where id = new.loan_id
+      and household_id = new.household_id
+  ) then
+    raise exception 'Loan and installment household mismatch';
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_validate_installment_household
+before insert or update on loan_installments
+for each row
+execute function validate_installment_household();
+
+create or replace function update_loan_outstanding()
+returns trigger as $$
+begin
+  if new.paid = true and old.paid = false then
+    update loans
+    set outstanding_principal =
+      outstanding_principal - new.principal_component
+    where id = new.loan_id;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_update_loan_outstanding
+after update of paid on loan_installments
+for each row
+execute function update_loan_outstanding();
+
+create or replace function close_loan_if_completed()
+returns trigger as $$
+begin
+  if new.outstanding_principal <= 0 then
+    update loans
+    set status = 'completed'
+    where id = new.id;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_close_loan
+after update on loans
+for each row
+when (new.outstanding_principal <= 0)
+execute function close_loan_if_completed();
+
+create or replace function prevent_paid_installment_edit()
+returns trigger as $$
+begin
+  if old.paid = true then
+    raise exception 'Paid installments cannot be modified';
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_lock_paid_installments
+before update on loan_installments
+for each row
+execute function prevent_paid_installment_edit();
+
+
+create or replace function generate_loan_installments(
+  p_loan_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_household_id uuid;
+  v_principal numeric;
+  v_rate numeric;
+  v_emi numeric;
+  v_tenure integer;
+  v_start_date date;
+  v_balance numeric;
+  v_interest numeric;
+  v_principal_component numeric;
+  i integer;
+begin
+  select
+    household_id,
+    principal_amount,
+    interest_rate,
+    calculated_emi,
+    calculated_tenure,
+    start_date
+  into
+    v_household_id,
+    v_principal,
+    v_rate,
+    v_emi,
+    v_tenure,
+    v_start_date
+  from loans
+  where id = p_loan_id;
+
+  v_balance := v_principal;
+  v_rate := v_rate / 1200; -- monthly rate
+
+  for i in 1..v_tenure loop
+    v_interest := round(v_balance * v_rate, 2);
+    v_principal_component := round(v_emi - v_interest, 2);
+
+    insert into loan_installments (
+      loan_id,
+      household_id,
+      installment_month,
+      emi_amount,
+      principal_component,
+      interest_component
+    ) values (
+      p_loan_id,
+      v_household_id,
+      date_trunc('month', v_start_date + (i - 1) * interval '1 month'),
+      v_emi,
+      v_principal_component,
+      v_interest
+    );
+
+    v_balance := v_balance - v_principal_component;
+  end loop;
+end;
+$$;
+
+create or replace function recalculate_loan_schedule(p_loan_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_loan record;
+  v_balance numeric;
+  v_rate numeric;
+  v_new_interest numeric;
+  v_new_principal_component numeric;
+  v_installment record;
+begin
+  select * into v_loan from loans where id = p_loan_id;
+  
+  -- Only recalculate for reducing balance loans
+  if v_loan.interest_type = 'fixed' then return; end if;
+
+  v_balance := v_loan.outstanding_principal;
+  v_rate := v_loan.interest_rate / 1200; -- monthly
+
+  for v_installment in 
+    select * from loan_installments 
+    where loan_id = p_loan_id and paid = false 
+    order by installment_month asc
+  loop
+    if v_balance <= 0 then
+      -- Loan is fully paid, remove remaining future installments
+      delete from loan_installments where id = v_installment.id;
+    else
+      v_new_interest := round(v_balance * v_rate, 2);
+      
+      -- Strategy: Tenure Reduction (Keep EMI same)
+      v_new_principal_component := round(v_loan.emi_amount - v_new_interest, 2);
+      
+      -- Check if this is the final payment (outstanding < normal principal component)
+      if v_balance < v_new_principal_component then
+         v_new_principal_component := v_balance;
+         
+         update loan_installments 
+         set emi_amount = v_new_principal_component + v_new_interest,
+             principal_component = v_new_principal_component,
+             interest_component = v_new_interest
+         where id = v_installment.id;
+         
+         v_balance := 0;
+      else
+         update loan_installments 
+         set principal_component = v_new_principal_component,
+             interest_component = v_new_interest
+         where id = v_installment.id;
+         
+         v_balance := v_balance - v_new_principal_component;
+      end if;
+    end if;
+  end loop;
+end;
+$$;
+
+create or replace function apply_loan_prepayment(
+  p_installment_id uuid,
+  p_extra_amount numeric
+)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_loan_id uuid;
+begin
+  select loan_id
+  into v_loan_id
+  from loan_installments
+  where id = p_installment_id;
+
+  -- Mark installment as paid
+  update loan_installments
+  set paid = true,
+      paid_on = current_date
+  where id = p_installment_id;
+
+  -- Reduce outstanding principal
+  -- (The p_extra_amount is the amount ABOVE the scheduled principal component of this installment? 
+  --  No, usually 'Prepayment' implies the total amount paid. 
+  --  But the frontend calculates 'excess' before calling this. 
+  --  Let's check `services/loanService.ts`. 
+  --  Yes: `const excess = amount - installment.emi_amount;`
+  --  So p_extra_amount is strictly the extra payment.)
+  
+  update loans
+  set outstanding_principal =
+      greatest(outstanding_principal - p_extra_amount, 0)
+  where id = v_loan_id;
+
+  -- Recalculate future schedule
+  perform recalculate_loan_schedule(v_loan_id);
+end;
+$$;
+
+create or replace function close_loan_early(
+  p_loan_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  -- Close loan
+  update loans
+  set status = 'closed_early',
+      outstanding_principal = 0
+  where id = p_loan_id;
+
+  -- Mark all unpaid installments as paid (system-closed)
+  update loan_installments
+  set paid = true,
+      paid_on = current_date
+  where loan_id = p_loan_id
+    and paid = false;
+end;
+$$;
+

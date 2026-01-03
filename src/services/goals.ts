@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
+import { Visibility } from '@/types';
+import { shareRecord } from './sharing';
 
 export interface Goal {
     id: string;
@@ -10,6 +12,8 @@ export interface Goal {
     priority: number;
     deadline?: string;
     created_at?: string;
+    owner_profile_id: string;
+    visibility: Visibility;
 }
 
 export async function getGoals(householdId: string): Promise<Goal[]> {
@@ -24,15 +28,32 @@ export async function getGoals(householdId: string): Promise<Goal[]> {
     return data || [];
 }
 
-export async function createGoal(goal: Omit<Goal, 'id' | 'created_at' | 'saved_amount'>): Promise<Goal> {
+export async function createGoal(
+    goal: Omit<Goal, 'id' | 'created_at' | 'saved_amount' | 'owner_profile_id' | 'visibility'> & { visibility?: Visibility; sharedWith?: string[] }
+): Promise<Goal> {
     const supabase = createClient();
+    const { sharedWith, visibility = 'household', ...goalData } = goal;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
         .from('goals')
-        .insert([{ ...goal, saved_amount: 0 }])
+        .insert([{
+            ...goalData,
+            saved_amount: 0,
+            visibility,
+            owner_profile_id: user.id
+        }])
         .select()
         .single();
 
     if (error) throw error;
+
+    if (visibility === 'custom' && sharedWith?.length && data) {
+        await shareRecord('goals', data.id, sharedWith);
+    }
+
     return data;
 }
 

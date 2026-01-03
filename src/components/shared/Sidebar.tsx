@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet, Receipt, Target, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wallet, Receipt, Target, Settings, LogOut, CreditCard, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClientComponentClient } from '@/lib/supabase';
 import ThemeToggle from './ThemeToggle';
@@ -12,6 +13,8 @@ const navItems = [
     { label: 'Income', href: '/income', icon: Wallet },
     { label: 'Expenses', href: '/expenses', icon: Receipt },
     { label: 'Goals', href: '/goals', icon: Target },
+    { label: 'Loans', href: '/loans', icon: CreditCard },
+    { label: 'Investments', href: '/investments', icon: TrendingUp },
     { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -45,8 +48,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}>
                 <div className="p-8">
                     <Link href="/" className="flex items-center gap-4 group">
-                        <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden border border-slate-100 dark:border-slate-700 group-hover:rotate-12 transition-all duration-500">
-                            <img src="/logo.png" alt="FamilyFi" className="w-full h-full object-cover scale-110" />
+                        <div className="w-12 h-12 relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden border border-slate-100 dark:border-slate-700 group-hover:rotate-12 transition-all duration-500">
+                            <Image src="/logo.png" alt="FamilyFi" fill className="object-cover scale-110" />
                         </div>
                         <span className="text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tighter group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                             FamilyFi
