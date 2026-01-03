@@ -45,3 +45,46 @@ export type Goal = {
     owner_profile_id: string;
     visibility: Visibility;
 };
+
+export type InvestmentType = 'mutual_fund' | 'stock' | 'bond' | 'other';
+export type InvestmentFrequency = 'monthly' | 'quarterly' | 'yearly';
+export type InvestmentStatus = 'active' | 'paused' | 'completed';
+export type InvestmentTransactionType = 'buy' | 'sell' | 'dividend';
+
+export type InvestmentInstrument = {
+    id: string;
+    name: string;
+    type: InvestmentType;
+    isin_or_symbol?: string;
+    risk_level?: 'low' | 'medium' | 'high';
+    created_at: string;
+};
+
+export type InvestmentPlan = {
+    id: string;
+    household_id: string;
+    owner_profile_id: string;
+    instrument_id: string;
+    goal_id?: string;
+    amount: number;
+    frequency: InvestmentFrequency;
+    start_date: string;
+    end_date?: string;
+    status: InvestmentStatus;
+    visibility: Visibility;
+    created_at: string;
+    // Relations
+    instrument?: InvestmentInstrument;
+    current_value?: number; // Calculated field
+};
+
+export type InvestmentTransaction = {
+    id: string;
+    plan_id: string;
+    transaction_date: string;
+    amount: number;
+    units?: number;
+    nav?: number;
+    transaction_type: InvestmentTransactionType;
+    created_at: string;
+};

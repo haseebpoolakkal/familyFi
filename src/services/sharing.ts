@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 
 export async function shareRecord(
-    tableName: 'income' | 'expense_templates' | 'goals' | 'loans',
+    tableName: 'income' | 'expense_templates' | 'goals' | 'loans' | 'investment_plans' | 'investment_transactions',
     recordId: string,
     profileIds: string[]
 ) {
@@ -25,7 +25,7 @@ export async function shareRecord(
 }
 
 export async function getSharedProfileIds(
-    tableName: 'income' | 'expense_templates' | 'goals' | 'loans',
+    tableName: 'income' | 'expense_templates' | 'goals' | 'loans' | 'investment_plans' | 'investment_transactions',
     recordId: string
 ): Promise<string[]> {
     const supabase = createClient();

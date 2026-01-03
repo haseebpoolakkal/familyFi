@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet, Receipt, Target, Settings, LogOut, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Wallet, Receipt, Target, Settings, LogOut, CreditCard, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClientComponentClient } from '@/lib/supabase';
 import ThemeToggle from './ThemeToggle';
@@ -14,6 +14,7 @@ const navItems = [
     { label: 'Expenses', href: '/expenses', icon: Receipt },
     { label: 'Goals', href: '/goals', icon: Target },
     { label: 'Loans', href: '/loans', icon: CreditCard },
+    { label: 'Investments', href: '/investments', icon: TrendingUp },
     { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
