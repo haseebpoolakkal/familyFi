@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { calculateLoanSummary } from '@/lib/finance/loanCalculator';
 
 export type Loan = {
     id: string;
@@ -41,90 +42,22 @@ export interface CreateLoanInput {
     householdId: string;
 }
 
-function calculateLoan(
-    principal: number,
-    annualRate: number,
-    tenureMonths?: number,
-    emiAmount?: number,
-    interestType: 'reducing' | 'fixed' = 'reducing'
-) {
-    if (interestType === 'fixed') {
-        // Flat Rate Logic
-        if (!tenureMonths) throw new Error('Tenure is required for Fixed Interest loans');
-
-        const totalInterest = principal * (annualRate / 100) * (tenureMonths / 12);
-        const totalPayable = principal + totalInterest;
-        const emi = totalPayable / tenureMonths;
-
-        return {
-            emi: round(emi),
-            tenure: tenureMonths,
-            totalPayable: round(totalPayable),
-            totalInterest: round(totalInterest)
-        };
-    }
-
-    // Reducing Balance Logic (Existing)
-    const r = annualRate / 12 / 100;
-
-    if (tenureMonths) {
-        const emi =
-            (principal * r * Math.pow(1 + r, tenureMonths)) /
-            (Math.pow(1 + r, tenureMonths) - 1);
-
-        const totalPayable = emi * tenureMonths;
-        return {
-            emi: round(emi),
-            tenure: tenureMonths,
-            totalPayable: round(totalPayable),
-            totalInterest: round(totalPayable - principal),
-        };
-    }
-
-    if (emiAmount) {
-        let balance = principal;
-        let months = 0;
-        let totalPaid = 0;
-
-        while (balance > 0 && months < 1000) {
-            const interest = balance * r;
-            const principalPaid = emiAmount - interest;
-            balance -= principalPaid;
-            totalPaid += emiAmount;
-            months++;
-        }
-
-        return {
-            emi: emiAmount,
-            tenure: months,
-            totalPayable: round(totalPaid),
-            totalInterest: round(totalPaid - principal),
-        };
-    }
-
-    throw new Error('Either tenureMonths or emiAmount is required');
-}
-
-function round(n: number) {
-    return Math.round(n * 100) / 100;
-}
-
-
 export async function createLoan(input: CreateLoanInput) {
     const supabase = createClient();
 
+    const summary = calculateLoanSummary({
+        principal: input.principalAmount,
+        annualInterestRate: input.interestRate,
+        tenureMonths: input.tenureMonths,
+        emi: input.emiAmount,
+    });
+
     const {
         emi,
-        tenure,
+        tenureMonths: tenure,
         totalPayable,
         totalInterest,
-    } = calculateLoan(
-        input.principalAmount,
-        input.interestRate,
-        input.tenureMonths,
-        input.emiAmount,
-        input.interestType
-    );
+    } = summary;
 
     const { data, error } = await supabase
         .from('loans')
@@ -221,7 +154,14 @@ export async function updateLoan(loanId: string, input: Partial<CreateLoanInput>
         const t = input.tenureMonths ?? currentLoan.tenure_months;
 
         // Re-calculate
-        const { emi, tenure, totalPayable, totalInterest } = calculateLoan(p, r, t, undefined, type);
+        const summary = calculateLoanSummary({
+            principal: p,
+            annualInterestRate: r,
+            tenureMonths: t,
+            // emi: undefined // Calculate fresh EMI based on new parameters
+        });
+
+        const { emi, tenureMonths: tenure, totalPayable, totalInterest } = summary;
 
         updates.principal_amount = p;
         updates.interest_rate = r;

@@ -14,7 +14,7 @@ export default function GoalCard({ goal }: { goal: Goal }) {
     const progress = Math.min((goal.saved_amount / goal.target_amount) * 100, 100);
 
     return (
-        <div className={`p-4 md:p-8 rounded-3xl md:rounded-[2.5rem] border transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${isAchieved
+        <div className={`p-4 md:p-8 rounded-xl md:rounded-2xl border transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${isAchieved
             ? 'bg-green-50/30 dark:bg-green-900/10 border-green-100/50 dark:border-green-900/20'
             : 'bg-white dark:bg-slate-900/40 border-slate-100 dark:border-slate-800/50 shadow-sm'}`}>
             <div className="flex justify-between items-start mb-6">
