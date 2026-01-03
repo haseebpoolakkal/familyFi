@@ -2,13 +2,14 @@
 
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getIncome, addIncome, updateIncome, deleteIncome, Income } from '@/services/income';
+import { getIncome, addIncome, updateIncome, deleteIncome, Income, CreateIncomeInput } from '@/services/income';
 import { useUserStore } from '@/store/userStore';
 import { useState } from 'react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Edit2, Trash2, Plus, X, Check } from 'lucide-react';
 import { useDateFilterStore } from '@/store/dateFilterStore';
 import MonthFilter from '@/components/shared/MonthFilter';
+import { VisibilitySelector } from '@/components/shared/VisibilitySelector';
 
 export default function IncomePage() {
     const { profile } = useUserStore();
@@ -21,6 +22,8 @@ export default function IncomePage() {
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState<'fixed' | 'freelance'>('fixed');
+    const [visibility, setVisibility] = useState<'private' | 'household' | 'custom'>('private');
+    const [sharedWith, setSharedWith] = useState<string[]>([]);
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValues, setEditValues] = useState({ amount: '', description: '', type: 'fixed' as 'fixed' | 'freelance' });
@@ -32,12 +35,14 @@ export default function IncomePage() {
     });
 
     const addMutation = useMutation({
-        mutationFn: (newIncome: Partial<Income>) => addIncome(newIncome),
+        mutationFn: (newIncome: CreateIncomeInput) => addIncome(newIncome),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['income'] });
             setIsAddOpen(false);
             setAmount('');
             setDescription('');
+            setVisibility('private');
+            setSharedWith([]);
         },
     });
 
@@ -65,6 +70,8 @@ export default function IncomePage() {
             description,
             type,
             date: new Date().toISOString().split('T')[0],
+            visibility,
+            sharedWith,
         });
     };
 
@@ -151,6 +158,16 @@ export default function IncomePage() {
                                     <option value="fixed">Fixed (Salary)</option>
                                     <option value="freelance">Variable (Freelance/Other)</option>
                                 </select>
+                            </div>
+                            <div>
+                                <VisibilitySelector
+                                    value={visibility}
+                                    onChange={(v: any, s: string[]) => {
+                                        setVisibility(v);
+                                        setSharedWith(s);
+                                    }}
+                                    householdId={profile!.household_id}
+                                />
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 mt-6">

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useUserStore } from '@/store/userStore';
 import { createGoal } from '@/services/goals';
 import { X, Target, Percent, TrendingUp } from 'lucide-react';
+import { VisibilitySelector } from '@/components/shared/VisibilitySelector';
+import { Visibility } from '@/types';
 
 interface AddGoalModalProps {
     isOpen: boolean;
@@ -21,6 +23,8 @@ export default function AddGoalModal({ isOpen, onClose, onSuccess }: AddGoalModa
         priority: '0',
         deadline: '',
     });
+    const [visibility, setVisibility] = useState<Visibility>('household');
+    const [sharedWith, setSharedWith] = useState<string[]>([]);
 
     if (!isOpen) return null;
 
@@ -37,6 +41,8 @@ export default function AddGoalModal({ isOpen, onClose, onSuccess }: AddGoalModa
                 allocation_percentage: parseInt(formData.allocation_percentage),
                 priority: parseInt(formData.priority),
                 deadline: formData.deadline || undefined,
+                visibility,
+                sharedWith
             });
             onSuccess();
             resetForm();
@@ -57,6 +63,8 @@ export default function AddGoalModal({ isOpen, onClose, onSuccess }: AddGoalModa
             priority: '0',
             deadline: '',
         });
+        setVisibility('household');
+        setSharedWith([]);
     };
 
     return (
@@ -130,6 +138,15 @@ export default function AddGoalModal({ isOpen, onClose, onSuccess }: AddGoalModa
                             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                         />
                     </div>
+
+                    <VisibilitySelector
+                        value={visibility}
+                        onChange={(v, s) => {
+                            setVisibility(v);
+                            setSharedWith(s);
+                        }}
+                        householdId={profile!.household_id}
+                    />
 
                     <div className="pt-6">
                         <button

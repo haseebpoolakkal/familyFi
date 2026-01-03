@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Modal from '@/components/shared/Modal';
 import { createLoan } from '@/services/loanService';
+import { VisibilitySelector } from '@/components/shared/VisibilitySelector';
+import { Visibility } from '@/types';
 
 import { useUserStore } from '@/store/userStore';
 
@@ -13,6 +15,8 @@ type Props = {
 export default function AddLoanModal({ isOpen, onClose, onSuccess }: Props) {
     const { profile } = useUserStore();
     const [loading, setLoading] = useState(false);
+    const [visibility, setVisibility] = useState<Visibility>('household');
+    const [sharedWith, setSharedWith] = useState<string[]>([]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -30,6 +34,8 @@ export default function AddLoanModal({ isOpen, onClose, onSuccess }: Props) {
                 startDate: data.get('start') as string,
                 interestType: data.get('type') as 'reducing' | 'fixed',
                 householdId: profile.household_id,
+                visibility,
+                sharedWith
             });
             onSuccess();
             onClose();
@@ -57,6 +63,15 @@ export default function AddLoanModal({ isOpen, onClose, onSuccess }: Props) {
                     <Input name="tenure" label="Tenure (months)" type="number" required min="1" />
                     <Input name="start" label="Start Date" type="date" required />
                 </div>
+
+                <VisibilitySelector
+                    value={visibility}
+                    onChange={(v: any, s: string[]) => {
+                        setVisibility(v);
+                        setSharedWith(s);
+                    }}
+                    householdId={profile!.household_id}
+                />
 
                 <button
                     disabled={loading}

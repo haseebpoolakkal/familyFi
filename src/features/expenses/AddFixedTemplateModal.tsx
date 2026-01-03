@@ -6,6 +6,8 @@ import { getExpenseCategories, ExpenseCategory } from '@/services/settings';
 import { useQuery } from '@tanstack/react-query';
 import { useUserStore } from '@/store/userStore';
 import { X, Loader2, Check } from 'lucide-react';
+import { VisibilitySelector } from '@/components/shared/VisibilitySelector';
+import { Visibility } from '@/types';
 
 interface AddFixedTemplateModalProps {
     isOpen: boolean;
@@ -25,6 +27,8 @@ export default function AddFixedTemplateModal({
     const [recurrence, setRecurrence] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
     const [dueDay, setDueDay] = useState('1');
     const [recordInitialPayment, setRecordInitialPayment] = useState(true);
+    const [visibility, setVisibility] = useState<Visibility>('household');
+    const [sharedWith, setSharedWith] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +52,9 @@ export default function AddFixedTemplateModal({
                 parseFloat(amount),
                 categoryId,
                 recurrence,
-                parseInt(dueDay)
+                parseInt(dueDay),
+                visibility,
+                sharedWith
             );
 
             if (recordInitialPayment) {
@@ -65,6 +71,8 @@ export default function AddFixedTemplateModal({
             setCategoryId('');
             setRecurrence('monthly');
             setDueDay('1');
+            setVisibility('household');
+            setSharedWith([]);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create fixed expense');
         } finally {
@@ -179,6 +187,15 @@ export default function AddFixedTemplateModal({
                             ))}
                         </div>
                     </div>
+
+                    <VisibilitySelector
+                        value={visibility}
+                        onChange={(v, s) => {
+                            setVisibility(v);
+                            setSharedWith(s);
+                        }}
+                        householdId={profile!.household_id}
+                    />
 
                     <div className="flex items-center gap-3 pt-2">
                         <button

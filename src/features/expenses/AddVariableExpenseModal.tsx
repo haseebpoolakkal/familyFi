@@ -6,6 +6,8 @@ import { getExpenseCategories, ExpenseCategory } from '@/services/settings';
 import { useQuery } from '@tanstack/react-query';
 import { useUserStore } from '@/store/userStore';
 import { X, Loader2, Check } from 'lucide-react';
+import { VisibilitySelector } from '@/components/shared/VisibilitySelector';
+import { Visibility } from '@/types';
 
 interface AddVariableExpenseModalProps {
     isOpen: boolean;
@@ -24,6 +26,8 @@ export default function AddVariableExpenseModal({
     const [categoryId, setCategoryId] = useState('');
     const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
     const [isPaid, setIsPaid] = useState(true);
+    const [visibility, setVisibility] = useState<Visibility>('household');
+    const [sharedWith, setSharedWith] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +43,8 @@ export default function AddVariableExpenseModal({
         setCategoryId('');
         setDueDate(new Date().toISOString().split('T')[0]);
         setIsPaid(true);
+        setVisibility('household');
+        setSharedWith([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +61,9 @@ export default function AddVariableExpenseModal({
                 parseFloat(amount),
                 categoryId,
                 dueDate,
-                isPaid
+                isPaid,
+                visibility,
+                sharedWith
             );
             onSuccess();
             resetForm();
@@ -157,6 +165,15 @@ export default function AddVariableExpenseModal({
                             />
                         </div>
                     </div>
+
+                    <VisibilitySelector
+                        value={visibility}
+                        onChange={(v, s) => {
+                            setVisibility(v);
+                            setSharedWith(s);
+                        }}
+                        householdId={profile!.household_id}
+                    />
 
                     <div className="flex items-center gap-3 pt-2">
                         <button

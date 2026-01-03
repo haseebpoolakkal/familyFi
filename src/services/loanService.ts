@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { calculateLoanSummary } from '@/lib/finance/loanCalculator';
+import { Visibility } from '@/types';
+import { shareRecord } from './sharing';
 
 export type Loan = {
     id: string;
@@ -16,6 +18,8 @@ export type Loan = {
     outstanding_principal: number;
     status: 'active' | 'completed' | 'closed_early';
     interest_type?: 'reducing' | 'fixed';
+    owner_profile_id: string;
+    visibility: Visibility;
 };
 
 export type LoanInstallment = {
@@ -40,6 +44,9 @@ export interface CreateLoanInput {
     emiAmount?: number;
     interestType: 'reducing' | 'fixed';
     householdId: string;
+    // New
+    visibility?: Visibility;
+    sharedWith?: string[];
 }
 
 export async function createLoan(input: CreateLoanInput) {
@@ -59,6 +66,11 @@ export async function createLoan(input: CreateLoanInput) {
         totalInterest,
     } = summary;
 
+    const visibility = input.visibility || 'household'; // Default Loan -> Household
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
         .from('loans')
         .insert({
@@ -76,6 +88,8 @@ export async function createLoan(input: CreateLoanInput) {
             total_interest: totalInterest,
             outstanding_principal: input.principalAmount,
             interest_type: input.interestType,
+            visibility,
+            owner_profile_id: user.id
         })
         .select()
         .maybeSingle();
@@ -83,6 +97,9 @@ export async function createLoan(input: CreateLoanInput) {
     if (error) throw error;
 
     if (data) {
+        if (visibility === 'custom' && input.sharedWith?.length) {
+            await shareRecord('loans', data.id, input.sharedWith);
+        }
         await generateLoanSchedule(data.id);
     }
 

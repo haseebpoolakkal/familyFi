@@ -1,3 +1,5 @@
+export type Visibility = 'private' | 'household' | 'custom';
+
 export type Profile = {
     id: string;
     household_id: string;
@@ -13,6 +15,8 @@ export type Income = {
     type: 'fixed' | 'freelance';
     date: string;
     description: string;
+    owner_profile_id: string;
+    visibility: Visibility;
 };
 
 export type Expense = {
@@ -26,6 +30,8 @@ export type Expense = {
     paid_at?: string;
     description: string;
     status: 'active' | 'completed' | 'closed';
+    // Note: Expense might refer to payment or template, adding fields optionally or to base if applicable
+    // But Expense seems to be a UI view. Let's start with backend services types.
 };
 
 export type Goal = {
@@ -36,4 +42,6 @@ export type Goal = {
     saved_amount: number;
     allocation_percentage: number;
     priority: number;
+    owner_profile_id: string;
+    visibility: Visibility;
 };
