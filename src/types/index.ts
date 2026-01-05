@@ -88,3 +88,73 @@ export type InvestmentTransaction = {
     transaction_type: InvestmentTransactionType;
     created_at: string;
 };
+
+// Zakat Types
+export type NisabType = 'silver' | 'gold';
+export type SchoolOfThought = 'hanafi' | 'shafi' | 'maliki' | 'hanbali';
+export type ZakatAssetType = 'cash' | 'bank_balance' | 'savings' | 'emergency_fund' | 'investment' | 'gold' | 'silver' | 'receivable' | 'other';
+export type ZakatLiabilityType = 'emi' | 'credit_card' | 'short_term_debt' | 'unpaid_bill' | 'other';
+
+export type ZakatSettings = {
+    id: string;
+    profile_id: string;
+    anniversary_date: string; // Date in YYYY-MM-DD format
+    nisab_type: NisabType;
+    school_of_thought: SchoolOfThought;
+    created_at: string;
+    updated_at: string;
+};
+
+export type ZakatSnapshot = {
+    id: string;
+    profile_id: string;
+    snapshot_date: string;
+    zakat_year_start: string;
+    zakat_year_end: string;
+    total_zakatable_assets: number;
+    total_deductible_liabilities: number;
+    net_zakatable_wealth: number;
+    nisab_threshold: number;
+    nisab_type: NisabType;
+    zakat_due: number;
+    created_at: string;
+    // Relations
+    asset_items?: ZakatAssetItem[];
+    liability_items?: ZakatLiabilityItem[];
+};
+
+export type ZakatAssetItem = {
+    id: string;
+    snapshot_id: string;
+    asset_type: ZakatAssetType;
+    asset_name: string;
+    source_type?: string;
+    source_id?: string;
+    market_value: number;
+    is_included: boolean;
+    notes?: string;
+    created_at: string;
+};
+
+export type ZakatLiabilityItem = {
+    id: string;
+    snapshot_id: string;
+    liability_type: ZakatLiabilityType;
+    liability_name: string;
+    source_type?: string;
+    source_id?: string;
+    amount_due_next_12_months: number;
+    is_included: boolean;
+    notes?: string;
+    created_at: string;
+};
+
+export type GoldSilverPrice = {
+    id: string;
+    date: string;
+    gold_price_per_gram_usd: number;
+    silver_price_per_gram_usd: number;
+    exchange_rate_usd_to_inr: number;
+    created_at: string;
+    updated_at: string;
+};
