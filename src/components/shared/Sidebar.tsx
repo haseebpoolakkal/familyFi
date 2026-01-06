@@ -15,6 +15,7 @@ const navItems = [
     { label: 'Goals', href: '/goals', icon: Target },
     { label: 'Loans', href: '/loans', icon: CreditCard },
     { label: 'Investments', href: '/investments', icon: TrendingUp },
+    { label: 'Expense Groups', href: '/expense-groups', icon: Settings },
     { label: 'Zakat', href: '/zakat', icon: Scale },
     { label: 'Settings', href: '/settings', icon: Settings },
 ];
